@@ -506,7 +506,10 @@ const MultipleSlidesExample = ( props ) => {
                             }} 
                             key={`data_slide_${index}`}
                             className="cross-selling-image"
-                            onClick={openInNewTab(item.link)}
+                            onClick={(e)=>{
+                                e.preventDefault();
+                                openInNewTab(item.link)
+                            }}
                             >
                         </CCard>
                     </div>

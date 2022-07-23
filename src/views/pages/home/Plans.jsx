@@ -68,12 +68,14 @@ function Plans(props) {
                     <CRow className="justify-content-md-center item-buttons">
                         {/* <CCol lg="1"></CCol> */}
                         <CCol className="col-md-auto">
-                            <CButton onClick={()=>{
+                            <CButton onClick={(e)=>{
+                                 e.preventdefault()
                                 history.push('/planes');
                             }} className="button1" type="submit" size="lg" color="secondary">Adquiere tu plan</CButton>
                         </CCol>
                         <CCol className="col-md-auto">
-                            <CButton onClick={()=>{
+                            <CButton onClick={(e)=>{
+                                e.preventdefault()
                                 history.push('/mensajeria-corporativa');
                             }} className="button2" type="submit" size="lg" color="secondary">Mensajeria Corporativa</CButton>
                         </CCol>

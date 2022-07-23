@@ -68,7 +68,8 @@ const SingleClient = (props) => {
             <CImg fluid
                 className="client-img"
                 src={`img/clients/${props.img}.png`}
-                onClick={()=>{
+                onClick={(e)=>{
+                    e.preventdefault()
                     window.open(links[props.img], '_blank').focus();
                 }}
             />
