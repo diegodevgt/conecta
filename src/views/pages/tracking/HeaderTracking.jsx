@@ -1,32 +1,17 @@
-import React, {useState, useEffect} from 'react'
-import PropTypes from 'prop-types'
 import {
-    CButton,
-    CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CContainer,
-    CJumbotron,
-    CRow,
-    CEmbed,
-    CEmbedItem,
-    CInput,
-    CInputGroup,
-    CInputGroupText,
-    CInputGroupPrepend,
-    CInputGroupAppend,
-    CFormGroup,
-    CLabel,
-    CTextarea
-  } from '@coreui/react'
-  import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-  import { faSearch } from '@fortawesome/free-solid-svg-icons'
-  import { ToastProvider, useToasts } from 'react-toast-notifications';
-  import axios from 'axios'
-  import { useHistory } from "react-router-dom";
+    CCard, CCol,
+    CContainer, CInput,
+    CInputGroup, CInputGroupAppend, CInputGroupText, CJumbotron,
+    CRow
+} from '@coreui/react'
+import { faSearch } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import axios from 'axios'
+import { useEffect, useState } from 'react'
+import { useHistory } from "react-router-dom"
+import { useToasts } from 'react-toast-notifications'
 
-function HeaderTracking(props) {
+function HeaderTracking() {
     const history = useHistory();
 
 
@@ -69,7 +54,7 @@ function HeaderTracking(props) {
         const config = {};
         return await axios.get( `https://ws.conectaguate.com/api/v1/site/pedidio/guia/${id}`, config).then(
             (result) => {
-                return result.data.existe;
+                return result.data;
         });
     }
 

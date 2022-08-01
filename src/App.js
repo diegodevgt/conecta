@@ -43,6 +43,7 @@ class App extends Component {
                 <Route exact path="/register" name="Register" render={props => <Register {...props}/>} />
                 <Route exact path="/planes" name="Planes" render={props => <Planes {...props}/>} />
                 <Route exact path="/plan-cambio" name="Plan Cambio" render={props => <PlanCambio {...props}/>} />
+                <Route exact path="/tracking/:id" name="Tracking Page" render={props => <Tracking {...props}/>} />
                 <Route path="/creacion-pedido" name="Creacion de Pedido" render={props => <TheLayout {...props}/>} />
                 <Route path="/cuenta/perfil" name="Perfil" render={props => <TheLayout {...props}/>} />
                 <Route path="/cuenta/password" name="Password" render={props => <TheLayout {...props}/>} />
@@ -52,7 +53,6 @@ class App extends Component {
                 <Route path="/coberturas" name="Coberturas" render={props => <TheLayout {...props}/>} />
                 <Route path="/recomendaciones" name="Recomendaciones" render={props => <TheLayout {...props}/>} />
                 <Route path="/cross-selling" name="Cross Selling" render={props => <TheLayout {...props}/>} />
-                <Route path="/tracking/:id" name="Tracking Page" render={props => <Tracking {...props}/>} />
                 <Redirect from='*' to='/' />
               </Switch>
             </React.Suspense>

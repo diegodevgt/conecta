@@ -58,25 +58,13 @@ function TrackingInformation(props) {
     }
 
     useEffect(()=>{
-        const user_object = reactLocalStorage.getObject('user');
-        
-        let bearer = "";
-        if(user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0){
-            reactLocalStorage.remove('user');
-            history.push('/login');
-        }else{  
-            bearer =  `Bearer ${user_object.token}`;
-        }
-
         axios({
             method: 'get',
-            url: 'https://ws.conectaguate.com/api/v1/site/cross',
+            url: `https://ws.conectaguate.com/api/v1/site/cross/${id}`,
             headers: { 
-                'Authorization': bearer,
                 'Content-Type': 'application/json'
             },
         }).then((response_items)=>{
-            console.log(response_items);
             let data_items = response_items.data["Data"];
             let new_array = [];
             data_items.forEach((item) => {
@@ -92,28 +80,16 @@ function TrackingInformation(props) {
                 }
             })
             setDataCrossSelling(new_array);
-            console.log(new_array);
         });
     },[])
 
-    // useEffect(()=>{
-        
-    // },[]);
 
     useEffect(()=>{
-        const user_object = reactLocalStorage.getObject('user');
-
-        if(user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0){
-            reactLocalStorage.remove('user');
-            setUser({});
-            history.push('/login');
-            return false;
-        }
         let base_url = 'https://ws.conectaguate.com/api'
 
-        let transportes = new Promise((resolve, reject) => axios({method:'get',url:base_url+'/v1/site/transportes',headers: {'Authorization': `Bearer ${user_object.token}`}}).then((data)=>resolve({key: 'transportes', data:data.data['Data']},'transportes')));
-        let estatus = new Promise((resolve, reject) => axios({method:'get',url:base_url+'/v1/site/estatus',headers: {'Authorization': `Bearer ${user_object.token}`}}).then((data)=>resolve({key: 'estatus', data:data.data['Data']},'estatus')));
-        let tipos_de_pago = new Promise((resolve, reject) => axios({method:'get',url:base_url+'/v1/site/tipopago',headers: {'Authorization': `Bearer ${user_object.token}`}}).then((data)=>resolve({key: 'tipos_de_pago', data:data.data['Data']},'tipos_de_pago')));
+        let transportes = new Promise((resolve, reject) => axios({method:'get',url:base_url+'/v1/site/transportes',}).then((data)=>resolve({key: 'transportes', data:data.data['Data']},'transportes')));
+        let estatus = new Promise((resolve, reject) => axios({method:'get',url:base_url+'/v1/site/estatus',}).then((data)=>resolve({key: 'estatus', data:data.data['Data']},'estatus')));
+        let tipos_de_pago = new Promise((resolve, reject) => axios({method:'get',url:base_url+'/v1/site/tipopago',}).then((data)=>resolve({key: 'tipos_de_pago', data:data.data['Data']},'tipos_de_pago')));
 
         Promise.all([transportes,estatus,tipos_de_pago]).then((values) => {
             values.forEach((elem)=>{
@@ -141,7 +117,6 @@ function TrackingInformation(props) {
                         ;
                 }
             })
-            console.log(values);
         });
     },[]);
 
@@ -165,12 +140,11 @@ function TrackingInformation(props) {
                 }else{
                     let pedido = res["Pedido"];
                     res["Pedido"].estado_pedido = estatus[res["Pedido"].status].nombre;
-                    console.log(res["Pedido"].estado_pedido);
                     setInfo({
                         ...pedido,
                         created_at: isoToDate(pedido.created_at),
                         updated_at: isoToDate(pedido.updated_at),
-                        tipo_pago: tipos_de_pago[pedido.tipo_pago].nombre,
+                        tipo_pago: pedido.tipo_pago != null ? tipos_de_pago[pedido.tipo_pago].nombre : "N/A",
                         nombre_tienda: (res["Empresa"]) ? res["Empresa"] : ""
                     })
                 }
@@ -249,7 +223,6 @@ function TrackingInformation(props) {
                     classes.step4_img = "completed-hold"
                 }
                 setStepClasses({...classes})
-                console.log("data info", res);
 
 
             },
@@ -282,7 +255,6 @@ function TrackingInformation(props) {
     }
     
     useEffect(()=>{
-        console.log(step_classes);
     },[step_classes])
     
 
@@ -409,16 +381,19 @@ function TrackingInformation(props) {
                     </CCol>
                 </CRow>
 
-                <CRow className="justify-content-md-center mb-4">
-                    {/* <CCol lg="1"></CCol> */}
-                    <CCol className="col-md-auto">
-                        <h4 className="title-related-products">
-                            Tambien te puede interesar
-                        </h4>
-                    </CCol>
-                    {/* <CCol lg="1"></CCol> */}
-                </CRow>
-
+                { 
+                    (data_cross_selling.length > 0) ?
+                    <CRow className="justify-content-md-center mb-4" >
+                        {/* <CCol lg="1"></CCol> */}
+                        <CCol className="col-md-auto">
+                            <h4 className="title-related-products">
+                                Tambien te puede interesar
+                            </h4>
+                        </CCol>
+                        {/* <CCol lg="1"></CCol> */}
+                    </CRow>
+                    : null
+                }
 
                 {
                     (data_cross_selling.length > 0) ?
@@ -498,7 +473,6 @@ const MultipleSlidesExample = ( props ) => {
       <div>
         <Slide {...properties}>
             {data.map((item, index)=>{
-                console.log(item);
                 let img_context = 'https://ws.conectaguate.com/'+item.img;
                 return <div style={style}  key={`div_carrousel_${index}`}>
                         <CCard style={{

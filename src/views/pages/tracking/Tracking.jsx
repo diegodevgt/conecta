@@ -1,8 +1,7 @@
-import React, {Fragment} from 'react'
 
+import PublicFooter from '../global/PublicFooter'
 import PublicHeader from '../global/PublicHeader'
 import HeaderTracking from './HeaderTracking'
-import PublicFooter from '../global/PublicFooter'
 import TrackingInformation from './TrackingInformation'
 
 
