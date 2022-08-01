@@ -32,7 +32,8 @@ function Video(props) {
         <>
         <CRow className="home-video">
             <CCol lg="12" className="home-video-single-column">
-                <CJumbotron fluid className="home-video-jumbotron" onClick={()=>{
+                <CJumbotron fluid className="home-video-jumbotron" onClick={(e)=>{
+                    e.preventdefault()
                     setShowVideo(true)
                 }}>
                     <CContainer fluid className={(!show_video) ? "background-image-video" : "video-youtube"}>

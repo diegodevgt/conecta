@@ -50,7 +50,8 @@ function Sales(props) {
                                 </CRow>
                                 <CRow>
                                     <CCol className="cta">
-                                        <CButton className="button" onClick={()=>{
+                                        <CButton className="button" onClick={(e)=>{
+                                            e.preventdefault()
                                             history.push('/mensajeria-corporativa');
                                         }}  type="submit" size="lg" color="secondary">Ver más</CButton>
                                     </CCol>

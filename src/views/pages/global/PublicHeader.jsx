@@ -46,7 +46,8 @@ function PublicHeader(props) {
               backgroundColor: '#153b75'
             }}
             inNavbar onClick={() => setIsOpen(!isOpen)}/>
-          <CNavbarBrand onClick={()=>{
+          <CNavbarBrand onClick={(e)=>{
+            e.preventdefault()
             history.push('/');
           }}>
               <CImg 

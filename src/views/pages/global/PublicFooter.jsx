@@ -64,14 +64,16 @@ function PublicFooter(props) {
                                 <CImg 
                                     className="social-icons"
                                     src="/img/icons/facebook.svg"
-                                    onClick={()=>{
+                                    onClick={(e)=>{
+                                        e.preventdefault()
                                         window.open('https://www.facebook.com/ConectaGuateOficial/', '_blank').focus();
                                     }}
                                 />
                                 <CImg 
                                     className="social-icons"
                                     src="/img/icons/instagram.svg"
-                                    onClick={()=>{
+                                    onClick={(e)=>{
+                                        e.preventdefault()
                                         window.open('https://www.instagram.com/conectagt_/', '_blank').focus();
                                     }}
                                 />
@@ -113,7 +115,8 @@ const LinkFooter = (props) =>{
         }else if(type === 'tel'){
             render = (<CLink 
                 className="link-item" 
-                onClick={()=>{
+                onClick={(e)=>{
+                    e.preventdefault()
                     window.open(`tel:23069030`);
                 }}
             >
@@ -122,7 +125,8 @@ const LinkFooter = (props) =>{
         }else if(type === 'mail'){
             render = (<CLink 
                 className="link-item" 
-                onClick={()=>{
+                onClick={(e)=>{
+                    e.preventdefault()
                     window.open(`mailto:${props.name}`);
                 }}
             >

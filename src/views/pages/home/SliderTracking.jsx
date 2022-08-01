@@ -113,7 +113,8 @@ function SliderTracking(props) {
         });
     }
 
-    const onSubmit = () =>{
+    const onSubmit = (e) =>{
+        e.preventDefault();
         let error = false;
         let labels = {
             name: "Nombre",
@@ -261,7 +262,8 @@ function SliderTracking(props) {
                                             onChange={handleChange}
                                         />
                                         <CInputGroupAppend
-                                            onClick={()=>{
+                                            onClick={(e)=>{
+                                                e.preventDefault();
                                                 searchGuia();
                                             }}
                                             style={{cursor:'pointer'}}
@@ -317,7 +319,9 @@ function SliderTracking(props) {
                         <CFormGroup className="form-actions" style={{marginBottom: '0'}}>
                             <CRow className="justify-content-md-center item-buttons">
                                 <CCol className="col-md-auto">
-                                    <CButton className="button" type="submit" size="lg" color="secondary" onClick={onSubmit}>Conectar</CButton>
+                                    <CButton className="button" type="submit" size="lg" color="secondary" onClick={
+                                        onSubmit
+                                        }>Conectar</CButton>
                                 </CCol>
                             </CRow>
                         </CFormGroup>
