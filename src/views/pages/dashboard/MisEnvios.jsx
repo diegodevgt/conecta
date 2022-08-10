@@ -77,9 +77,6 @@ function MisEnvios(props) {
                 headerName: 'Creación', 
                 field: 'fecha_creacion' },
             { 
-                headerName: 'Entrega', 
-                field: 'fecha_entrega' },
-            { 
                 headerName: 'Estado', 
                 field: 'estado',
                 cellRenderer: 'idBtnCellRenderer',
@@ -282,7 +279,7 @@ function MisEnvios(props) {
                         pedido: elem.id, 
                         destinatario: elem.nombre_destino, 
                         destino: elem.direccion_destino,
-                        tipo_de_envio: tipos_de_pago[elem.tipo_pago].nombre, 
+                        tipo_de_envio: tipos_de_pago[elem.tipo_pago] ? tipos_de_pago[elem.tipo_pago].nombre : "N/A", 
                         estado: elem.status, 
                         link: elem.guia,
                         fecha_creacion: elem.fecha_creacion,

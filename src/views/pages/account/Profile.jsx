@@ -1,36 +1,13 @@
-import React, { lazy, Fragment, useState, useEffect, useRef} from 'react'
 import {
-    CBadge,
-    CButton,
-    CButtonGroup,
-    CCard,
-    CCardBody,
-    CCardFooter,
-    CCardHeader,
-    CCol,
-    CProgress,
-    CRow,
-    CCallout,
-    CFormGroup,
-    CLabel,
-    CInput,
-    CSwitch,
-    CInputGroupAppend,
-    CInputGroup,
-    CInputGroupText,
-    CContainer,
-    CCollapse,
-    CSelect
-  } from '@coreui/react'
-  import { ToastProvider, useToasts } from 'react-toast-notifications';
-  import { v4 as uuidv4 } from 'uuid';
-  import axios from 'axios';
-  import { 
-      useHistory,
-      useRouteMatch,
-      useParams
-  } from "react-router-dom";
-  import {reactLocalStorage} from 'reactjs-localstorage';
+    CButton, CCol, CFormGroup, CInput, CLabel, CRow, CSelect
+} from '@coreui/react';
+import axios from 'axios';
+import { useEffect, useRef, useState } from 'react';
+import {
+    useHistory
+} from "react-router-dom";
+import { useToasts } from 'react-toast-notifications';
+import { reactLocalStorage } from 'reactjs-localstorage';
 
 function Profile(props) {
     const history = useHistory();
@@ -43,7 +20,7 @@ function Profile(props) {
         lat: "0",
         long: "0"
     });
-    const inputFile = useRef(null) 
+    const inputFile = useRef(null)
 
     const [profile, setProfile] = useState({
         nombre: "",
@@ -68,7 +45,7 @@ function Profile(props) {
     });
 
 
-    const onClick = () =>{ 
+    const onClick = () => {
         let labels = {
             nombre: "Nombre",
             apellido: "Apellido",
@@ -92,61 +69,60 @@ function Profile(props) {
 
         let allow = true;
         for (const [key, value] of Object.entries(profile)) {
-            if(key in labels && value.length === 0){
-                addToast(`El campo ${labels[key]} es requerido`, { 
-                    appearance: 'error', 
-                    autoDismiss : true ,
-                    autoDismissTimeout : 4000
+            if (key in labels && value.length === 0) {
+                addToast(`El campo ${labels[key]} es requerido`, {
+                    appearance: 'error',
+                    autoDismiss: true,
+                    autoDismissTimeout: 4000
                 });
                 allow = false;
             }
 
             const em = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-            if(key === 'email'){
-                if(!em.test(String(value).toLowerCase())){
-                    addToast(`El ${labels[key]} no es valido`, { 
-                        appearance: 'error', 
-                        autoDismiss : true ,
-                        autoDismissTimeout : 4000
+            if (key === 'email') {
+                if (!em.test(String(value).toLowerCase())) {
+                    addToast(`El ${labels[key]} no es valido`, {
+                        appearance: 'error',
+                        autoDismiss: true,
+                        autoDismissTimeout: 4000
                     });
                     allow = false;
                 }
             }
-            if(key === 'dpi'){
-                if(value.trim().length !== 13){
-                    addToast(`El dpi no es valido`, { 
-                        appearance: 'error', 
-                        autoDismiss : true ,
-                        autoDismissTimeout : 4000
+            if (key === 'dpi') {
+                if (value.trim().length !== 13) {
+                    addToast(`El dpi no es valido`, {
+                        appearance: 'error',
+                        autoDismiss: true,
+                        autoDismissTimeout: 4000
                     });
                     allow = false;
                 }
             }
         }
 
-        if(allow){
+        if (allow) {
             addUserInfo();
         }
         return allow;
     }
 
-   
+
 
     const handleChange = (e) => {
-        const {id, value} = e.target;
+        const { id, value } = e.target;
         let data_copy = JSON.parse(JSON.stringify(profile));
         data_copy = {
             ...data_copy,
-            [id]: value 
+            [id]: value
         }
         setProfile(data_copy);
-        console.log(data_copy);
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         let number_of_days = 0;
         let render = [];
-        switch(profile.fecha_nacimiento_month){
+        switch (profile.fecha_nacimiento_month) {
             case "1":
                 number_of_days = 31;
                 break;
@@ -187,33 +163,32 @@ function Profile(props) {
                 number_of_days = 31;
         }
 
-        for(let i = 2; i < number_of_days+1; i++){
+        for (let i = 2; i < number_of_days + 1; i++) {
             render.push(<option value="1">1</option>);
         }
         setRenderDays(render);
     }, []);
 
-    const ifNotNull = (data) =>{
-        if(data !== null){
+    const ifNotNull = (data) => {
+        if (data !== null) {
             return data;
         }
         return "";
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         const user_object = reactLocalStorage.getObject('user');
         let bearer = "";
-        console.log(user_object);
 
-        if(user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0){
+        if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
             reactLocalStorage.remove('user');
             history.push('/login');
-        }else{  
-            bearer =  `Bearer ${user_object.token}`;
-        }   
+        } else {
+            bearer = `Bearer ${user_object.token}`;
+        }
 
         const config = {
-            headers: { 
+            headers: {
                 "Authorization": bearer
             }
         };
@@ -221,27 +196,26 @@ function Profile(props) {
         axios.get(
             'https://ws.conectaguate.com/api/v1/site/usuario/information',
             config
-        ).then((response)=>{
-            
-            let data_usuario = response.data.usuario;
-            if(data_usuario === null) return false;
-            console.log(response)
+        ).then((response) => {
 
-            if(ifNotNull(data_usuario.fecha_nacimiento)){
-                data_usuario.fecha_nacimiento_day =  data_usuario.fecha_nacimiento.substring(8,10);
-                data_usuario.fecha_nacimiento_month =  data_usuario.fecha_nacimiento.substring(5,7) 
-                data_usuario.fecha_nacimiento_year =  data_usuario.fecha_nacimiento.substring(0,4) 
-                if(parseInt(data_usuario.fecha_nacimiento_day) < 10){
-                    data_usuario.fecha_nacimiento_day =  data_usuario.fecha_nacimiento_day.replace('0','');
-                }   
-                if(parseInt(data_usuario.fecha_nacimiento_month) < 10){
-                    data_usuario.fecha_nacimiento_month =  data_usuario.fecha_nacimiento_month.replace('0','');
-                }   
+            let data_usuario = response.data.usuario;
+            if (data_usuario === null) return false;
+
+            if (ifNotNull(data_usuario.fecha_nacimiento)) {
+                data_usuario.fecha_nacimiento_day = data_usuario.fecha_nacimiento.substring(8, 10);
+                data_usuario.fecha_nacimiento_month = data_usuario.fecha_nacimiento.substring(5, 7)
+                data_usuario.fecha_nacimiento_year = data_usuario.fecha_nacimiento.substring(0, 4)
+                if (parseInt(data_usuario.fecha_nacimiento_day) < 10) {
+                    data_usuario.fecha_nacimiento_day = data_usuario.fecha_nacimiento_day.replace('0', '');
+                }
+                if (parseInt(data_usuario.fecha_nacimiento_month) < 10) {
+                    data_usuario.fecha_nacimiento_month = data_usuario.fecha_nacimiento_month.replace('0', '');
+                }
             }
 
-            if(ifNotNull(data_usuario.lon) && ifNotNull(data_usuario.lat)){
+            if (ifNotNull(data_usuario.lon) && ifNotNull(data_usuario.lat)) {
                 setLocation({
-                    full_location: `Longitute = ${data_usuario.lon} \n latitude = ${data_usuario.lat}`,
+                    full_location: `Longitud = ${data_usuario.lon} \n Latitud = ${data_usuario.lat}`,
                     lat: data_usuario.lat,
                     long: data_usuario.lon
                 })
@@ -260,24 +234,23 @@ function Profile(props) {
                 tipo_producto: data_usuario.tipo_producto
             })
         });
-    },[]);
+    }, []);
 
-    useEffect(()=>{
-        console.log("Profile", profile);
-    },[profile])
+    useEffect(() => {
+        
+    }, [profile])
 
-    const addUserInfo = () =>{
+    const addUserInfo = () => {
         const user_object = reactLocalStorage.getObject('user');
-        console.log(`Bearer ${user_object.token}`);
         const config = {
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${user_object.token}`,
                 'Content-Type': 'application/json'
             }
         };
 
-        let mes = (parseInt(profile.fecha_nacimiento_month) < 10) ? "0"+profile.fecha_nacimiento_month : profile.fecha_nacimiento_month;
-        let dia = (parseInt(profile.fecha_nacimiento_day) < 10) ? "0"+profile.fecha_nacimiento_day : profile.fecha_nacimiento_day;
+        let mes = (parseInt(profile.fecha_nacimiento_month) < 10) ? "0" + profile.fecha_nacimiento_month : profile.fecha_nacimiento_month;
+        let dia = (parseInt(profile.fecha_nacimiento_day) < 10) ? "0" + profile.fecha_nacimiento_day : profile.fecha_nacimiento_day;
 
         const data_body = {
             nombre: profile.nombre,
@@ -301,85 +274,99 @@ function Profile(props) {
             cuenta_banco: profile.nombre_banco,
         }
 
-        console.log(data_body);
-    
+
         axios({
             method: 'post',
             url: 'https://ws.conectaguate.com/api/v1/site/usuario/information/create',
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${user_object.token}`,
                 'Content-Type': 'application/json'
             },
             data: data_body
         }).then(
-        (result) => {
-            addToast(`Informacion guardada exitosamente`, { 
-                appearance: 'success', 
-                autoDismiss : true ,
-                autoDismissTimeout : 4000
-            });
-            console.log(result);
-        },
-        (error) => {
-            if (error.response) {
-                addToast(`${error.response}`, { 
-                    appearance: 'error', 
-                    autoDismiss : true ,
-                    autoDismissTimeout : 4000
+            (result) => {
+                addToast(`Informacion guardada exitosamente`, {
+                    appearance: 'success',
+                    autoDismiss: true,
+                    autoDismissTimeout: 4000
                 });
-                console.log(error.response);
-            }
-        });
+            },
+            (error) => {
+                if (error.response) {
+                    addToast(`${error.response}`, {
+                        appearance: 'error',
+                        autoDismiss: true,
+                        autoDismissTimeout: 4000
+                    });
+                }
+            });
 
     }
 
 
-    useEffect(()=>{
+    useEffect(() => {
         const user_object = reactLocalStorage.getObject('user');
-        console.log(user_object);
-        if(user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0){
+        if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
             history.push('/login');
-        }else{
+        } else {
             const config = {
                 headers: { Authorization: `Bearer ${user_object.token}` }
             };
-        
+
             axios.get(
-            'https://ws.conectaguate.com/api/v1/site/departamentos/',
-            config,
+                'https://ws.conectaguate.com/api/v1/site/departamentos/',
+                config,
             ).then(
-            (result) => {
-                const departamentos_response = result.data.Data;
-                setDepartamentos(departamentos_response);
-                console.log(departamentos_response);
-            },
-            (error) => {
-                if (error.response) {
-                console.log(error.response);
-                }
-            });
+                (result) => {
+                    const departamentos_response = result.data.Data;
+                    setDepartamentos(departamentos_response);
+                },
+                (error) => {
+                    if (error.response) {
+                    }
+                });
 
             axios.get(
                 'https://ws.conectaguate.com/api/v1/site/municipios/',
                 config,
-                ).then(
+            ).then(
                 (result) => {
                     const municipios_response = result.data.Data;
                     setMunicipios(municipios_response);
-                    console.log(municipios_response);
                 },
                 (error) => {
                     if (error.response) {
-                    console.log(error.response);
                     }
                 });
         }
-    },[])
+    }, []);
 
-    useEffect(()=>{
+    const searchMunicipios = (e) => {
+        const { value } = e.target;
+        const user_object = reactLocalStorage.getObject('user');
+        const config = {
+            headers: { Authorization: `Bearer ${user_object.token}` }
+        };
+        
+        axios.get(
+            `https://ws.conectaguate.com/api/v1/site/departamentos/nombre/${value}`,
+            config,
+        ).then(
+            (result) => {
+                const municipios_response = result.data.Data.municipios;
+                setMunicipios(municipios_response);
+            },
+            (error) => {
+                if (error.response) {
+                }
+            }
+        );
+    };
+
+    useEffect(() => {
         let number_of_days = 0;
         let render = [];
-        switch(profile.fecha_nacimiento_month){
+        switch (profile.fecha_nacimiento_month) {
             case "1":
                 number_of_days = 31;
                 break;
@@ -420,7 +407,7 @@ function Profile(props) {
                 number_of_days = 31;
         }
 
-        for(let i = 2; i < number_of_days+1; i++){
+        for (let i = 2; i < number_of_days + 1; i++) {
             render.push(<option key={`key_op_${i}`} value={i}>{i}</option>);
         }
         setRenderDays(render);
@@ -429,33 +416,30 @@ function Profile(props) {
     //  Testing get location
     let current_location = document.getElementById("location");
     const success = (position) => {
-    const longitude = position.coords.longitude;
-    const latitude = position.coords.latitude;
-    setLocation({
-        full_location: `Longitute = ${longitude} \n latitude = ${latitude}`,
-        lat: latitude,
-        long: longitude
-    });
-    setProfile({
-        ...profile,
-        lat: latitude,
-        lon: longitude
-    })
-    current_location.textContent = `Longitute = ${longitude} \n latitude = ${latitude}`;
+        const longitude = position.coords.longitude;
+        const latitude = position.coords.latitude;
+        setLocation({
+            full_location: `Longitud = ${longitude} \n Latitud = ${latitude}`,
+            lat: latitude,
+            long: longitude
+        });
+        setProfile({
+            ...profile,
+            lat: latitude,
+            lon: longitude
+        })
+        current_location.textContent = `Longitud = ${longitude} \n Latitud = ${latitude}`;
     }
     const error = (error) => {
         current_location.textContent = `Couldn't access your location \n Reason: ${error.message}`;
     }
     const getLocation = () => {
-        console.log(location.long);
-        console.log(location.lat);
-        console.log(location.long === "0" && location.lat === "0");
-        if(location.long === "0" && location.lat === "0"){
-            if(navigator.geolocation)
-                navigator.geolocation.getCurrentPosition(success,error);
-            else 
+        if (location.long === "0" && location.lat === "0") {
+            if (navigator.geolocation)
+                navigator.geolocation.getCurrentPosition(success, error);
+            else
                 current_location.textContent = `Your browser does not support this feature`;
-        }else{
+        } else {
             setLocation({
                 full_location: ``,
                 lat: "0",
@@ -470,7 +454,7 @@ function Profile(props) {
     }
 
     return (
-        <>  
+        <>
             <div className="profile-container">
                 <CRow>
                     <CCol sm="12">
@@ -489,7 +473,7 @@ function Profile(props) {
                     <CCol sm="6">
                         <CFormGroup>
                             <CLabel htmlFor="Apellido">Apellido</CLabel>
-                            <CInput id="apellido" onChange={handleChange} value={profile.apellido}  placeholder="" required />
+                            <CInput id="apellido" onChange={handleChange} value={profile.apellido} placeholder="" required />
                         </CFormGroup>
                     </CCol>
                 </CRow>
@@ -529,126 +513,126 @@ function Profile(props) {
                                 <CCol xs="4">
                                     <CFormGroup>
                                         <CSelect onChange={handleChange} value={profile.fecha_nacimiento_month} custom name="fecha_nacimiento_month" id="fecha_nacimiento_month">
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                        <option value="5">5</option>
-                                        <option value="6">6</option>
-                                        <option value="7">7</option>
-                                        <option value="8">8</option>
-                                        <option value="9">9</option>
-                                        <option value="10">10</option>
-                                        <option value="11">11</option>
-                                        <option value="12">12</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4">4</option>
+                                            <option value="5">5</option>
+                                            <option value="6">6</option>
+                                            <option value="7">7</option>
+                                            <option value="8">8</option>
+                                            <option value="9">9</option>
+                                            <option value="10">10</option>
+                                            <option value="11">11</option>
+                                            <option value="12">12</option>
                                         </CSelect>
                                     </CFormGroup>
                                 </CCol>
                                 <CCol xs="4">
                                     <CFormGroup>
                                         <CSelect onChange={handleChange} value={profile.fecha_nacimiento_year} custom name="fecha_nacimiento_year" id="fecha_nacimiento_year">
-                                        <option value="1920">1920</option>
-                                        <option value="1921">1921</option>
-                                        <option value="1922">1922</option>
-                                        <option value="1923">1923</option>
-                                        <option value="1924">1924</option>
-                                        <option value="1925">1925</option>
-                                        <option value="1926">1926</option>
-                                        <option value="1927">1927</option>
-                                        <option value="1928">1928</option>
-                                        <option value="1929">1929</option>
-                                        <option value="1930">1930</option>
-                                        <option value="1931">1931</option>
-                                        <option value="1932">1932</option>
-                                        <option value="1933">1933</option>
-                                        <option value="1934">1934</option>
-                                        <option value="1935">1935</option>
-                                        <option value="1936">1936</option>
-                                        <option value="1937">1937</option>
-                                        <option value="1938">1938</option>
-                                        <option value="1939">1939</option>
-                                        <option value="1940">1940</option>
-                                        <option value="1941">1941</option>
-                                        <option value="1942">1942</option>
-                                        <option value="1943">1943</option>
-                                        <option value="1944">1944</option>
-                                        <option value="1945">1945</option>
-                                        <option value="1946">1946</option>
-                                        <option value="1947">1947</option>
-                                        <option value="1948">1948</option>
-                                        <option value="1949">1949</option>
-                                        <option value="1950">1950</option>
-                                        <option value="1951">1951</option>
-                                        <option value="1952">1952</option>
-                                        <option value="1953">1953</option>
-                                        <option value="1954">1954</option>
-                                        <option value="1955">1955</option>
-                                        <option value="1956">1956</option>
-                                        <option value="1957">1957</option>
-                                        <option value="1958">1958</option>
-                                        <option value="1959">1959</option>
-                                        <option value="1960">1960</option>
-                                        <option value="1961">1961</option>
-                                        <option value="1962">1962</option>
-                                        <option value="1963">1963</option>
-                                        <option value="1964">1964</option>
-                                        <option value="1965">1965</option>
-                                        <option value="1966">1966</option>
-                                        <option value="1967">1967</option>
-                                        <option value="1968">1968</option>
-                                        <option value="1969">1969</option>
-                                        <option value="1970">1970</option>
-                                        <option value="1971">1971</option>
-                                        <option value="1972">1972</option>
-                                        <option value="1973">1973</option>
-                                        <option value="1974">1974</option>
-                                        <option value="1975">1975</option>
-                                        <option value="1976">1976</option>
-                                        <option value="1977">1977</option>
-                                        <option value="1978">1978</option>
-                                        <option value="1979">1979</option>
-                                        <option value="1980">1980</option>
-                                        <option value="1981">1981</option>
-                                        <option value="1982">1982</option>
-                                        <option value="1983">1983</option>
-                                        <option value="1984">1984</option>
-                                        <option value="1985">1985</option>
-                                        <option value="1986">1986</option>
-                                        <option value="1987">1987</option>
-                                        <option value="1988">1988</option>
-                                        <option value="1989">1989</option>
-                                        <option value="1990">1990</option>
-                                        <option value="1991">1991</option>
-                                        <option value="1992">1992</option>
-                                        <option value="1993">1993</option>
-                                        <option value="1994">1994</option>
-                                        <option value="1995">1995</option>
-                                        <option value="1996">1996</option>
-                                        <option value="1997">1997</option>
-                                        <option value="1998">1998</option>
-                                        <option value="1999">1999</option>
-                                        <option value="2000">2000</option>
-                                        <option value="2001">2001</option>
-                                        <option value="2002">2002</option>
-                                        <option value="2003">2003</option>
-                                        <option value="2004">2004</option>
-                                        <option value="2005">2005</option>
-                                        <option value="2006">2006</option>
-                                        <option value="2007">2007</option>
-                                        <option value="2008">2008</option>
-                                        <option value="2009">2009</option>
-                                        <option value="2010">2010</option>
-                                        <option value="2011">2011</option>
-                                        <option value="2012">2012</option>
-                                        <option value="2013">2013</option>
-                                        <option value="2014">2014</option>
-                                        <option value="2015">2015</option>
-                                        <option value="2016">2016</option>
-                                        <option value="2017">2017</option>
-                                        <option value="2018">2018</option>
-                                        <option value="2019">2019</option>
-                                        <option value="2020">2020</option>
-                                        <option value="2021">2021</option>
+                                            <option value="1920">1920</option>
+                                            <option value="1921">1921</option>
+                                            <option value="1922">1922</option>
+                                            <option value="1923">1923</option>
+                                            <option value="1924">1924</option>
+                                            <option value="1925">1925</option>
+                                            <option value="1926">1926</option>
+                                            <option value="1927">1927</option>
+                                            <option value="1928">1928</option>
+                                            <option value="1929">1929</option>
+                                            <option value="1930">1930</option>
+                                            <option value="1931">1931</option>
+                                            <option value="1932">1932</option>
+                                            <option value="1933">1933</option>
+                                            <option value="1934">1934</option>
+                                            <option value="1935">1935</option>
+                                            <option value="1936">1936</option>
+                                            <option value="1937">1937</option>
+                                            <option value="1938">1938</option>
+                                            <option value="1939">1939</option>
+                                            <option value="1940">1940</option>
+                                            <option value="1941">1941</option>
+                                            <option value="1942">1942</option>
+                                            <option value="1943">1943</option>
+                                            <option value="1944">1944</option>
+                                            <option value="1945">1945</option>
+                                            <option value="1946">1946</option>
+                                            <option value="1947">1947</option>
+                                            <option value="1948">1948</option>
+                                            <option value="1949">1949</option>
+                                            <option value="1950">1950</option>
+                                            <option value="1951">1951</option>
+                                            <option value="1952">1952</option>
+                                            <option value="1953">1953</option>
+                                            <option value="1954">1954</option>
+                                            <option value="1955">1955</option>
+                                            <option value="1956">1956</option>
+                                            <option value="1957">1957</option>
+                                            <option value="1958">1958</option>
+                                            <option value="1959">1959</option>
+                                            <option value="1960">1960</option>
+                                            <option value="1961">1961</option>
+                                            <option value="1962">1962</option>
+                                            <option value="1963">1963</option>
+                                            <option value="1964">1964</option>
+                                            <option value="1965">1965</option>
+                                            <option value="1966">1966</option>
+                                            <option value="1967">1967</option>
+                                            <option value="1968">1968</option>
+                                            <option value="1969">1969</option>
+                                            <option value="1970">1970</option>
+                                            <option value="1971">1971</option>
+                                            <option value="1972">1972</option>
+                                            <option value="1973">1973</option>
+                                            <option value="1974">1974</option>
+                                            <option value="1975">1975</option>
+                                            <option value="1976">1976</option>
+                                            <option value="1977">1977</option>
+                                            <option value="1978">1978</option>
+                                            <option value="1979">1979</option>
+                                            <option value="1980">1980</option>
+                                            <option value="1981">1981</option>
+                                            <option value="1982">1982</option>
+                                            <option value="1983">1983</option>
+                                            <option value="1984">1984</option>
+                                            <option value="1985">1985</option>
+                                            <option value="1986">1986</option>
+                                            <option value="1987">1987</option>
+                                            <option value="1988">1988</option>
+                                            <option value="1989">1989</option>
+                                            <option value="1990">1990</option>
+                                            <option value="1991">1991</option>
+                                            <option value="1992">1992</option>
+                                            <option value="1993">1993</option>
+                                            <option value="1994">1994</option>
+                                            <option value="1995">1995</option>
+                                            <option value="1996">1996</option>
+                                            <option value="1997">1997</option>
+                                            <option value="1998">1998</option>
+                                            <option value="1999">1999</option>
+                                            <option value="2000">2000</option>
+                                            <option value="2001">2001</option>
+                                            <option value="2002">2002</option>
+                                            <option value="2003">2003</option>
+                                            <option value="2004">2004</option>
+                                            <option value="2005">2005</option>
+                                            <option value="2006">2006</option>
+                                            <option value="2007">2007</option>
+                                            <option value="2008">2008</option>
+                                            <option value="2009">2009</option>
+                                            <option value="2010">2010</option>
+                                            <option value="2011">2011</option>
+                                            <option value="2012">2012</option>
+                                            <option value="2013">2013</option>
+                                            <option value="2014">2014</option>
+                                            <option value="2015">2015</option>
+                                            <option value="2016">2016</option>
+                                            <option value="2017">2017</option>
+                                            <option value="2018">2018</option>
+                                            <option value="2019">2019</option>
+                                            <option value="2020">2020</option>
+                                            <option value="2021">2021</option>
                                         </CSelect>
                                     </CFormGroup>
                                 </CCol>
@@ -695,12 +679,12 @@ function Profile(props) {
                             <CRow>
                                 <CCol sm="4" className="mb-3 mb-xl-0">
                                     <CButton name="logo-button" block color="secondary"
-                                     onClick={() => {
-                                        // `current` points to the mounted file input element
-                                       inputFile.current.click();
-                                    }}
+                                        onClick={() => {
+                                            // `current` points to the mounted file input element
+                                            inputFile.current.click();
+                                        }}
                                     >Cargar logo</CButton>
-                                    <input type='file' id='file' ref={inputFile} style={{display: 'none'}}/>
+                                    <input type='file' id='file' ref={inputFile} style={{ display: 'none' }} />
                                 </CCol>
                                 <CCol sm="7" className="mb-3 mb-xl-0">
                                     El archivo no debe exceder de 2mb, jpg, png
@@ -722,9 +706,9 @@ function Profile(props) {
                         <CFormGroup>
                             <CLabel htmlFor="departamento">Departamento</CLabel>
                             <CFormGroup>
-                                <CSelect onChange={handleChange} value={profile.departamento} custom name="departamento" id="departamento">
+                                <CSelect onChange={(e) => {handleChange(e);searchMunicipios(e)}} value={profile.departamento} custom name="departamento" id="departamento">
                                     <option></option>
-                                    {departamentos.map((elem)=>{
+                                    {departamentos.map((elem) => {
                                         return <option key={elem.id} value={elem.nombre}>{elem.nombre}</option>
                                     })}
                                 </CSelect>
@@ -737,7 +721,7 @@ function Profile(props) {
                             <CFormGroup>
                                 <CSelect onChange={handleChange} value={profile.municipio} custom name="municipio" id="municipio">
                                     <option></option>
-                                    {municipios.map((elem)=>{
+                                    {municipios.map((elem) => {
                                         return <option key={elem.id} value={elem.nombre}>{elem.nombre}</option>
                                     })}
                                 </CSelect>
@@ -746,15 +730,15 @@ function Profile(props) {
                     </CCol>
                     <CCol sm="4">
                         <CLabel htmlFor="ubicacion">Compartir ubicación</CLabel>
-                        <CRow className="switch-container">          
+                        <CRow className="switch-container">
                             <label className="switch">
-                                <input type="checkbox" id="ubicacion" onChange={getLocation} checked={(location.lat !== "0" && location.long !== "0") ? true : false}/>
+                                <input type="checkbox" id="ubicacion" onChange={getLocation} checked={(location.lat !== "0" && location.long !== "0") ? true : false} />
                                 <div className="slider round">
-                                <span className="on">Si</span>
-                                <span className="off">no</span>
+                                    <span className="on">Si</span>
+                                    <span className="off">no</span>
                                 </div>
                             </label>
-                            <div id = "location">{(location.lat !== "0" && location.long !== "0") ? `Longitute = ${location.long} \n latitude = ${location.lat}` : ''}</div>
+                            <div id="location">{(location.lat !== "0" && location.long !== "0") ? `Longitud = ${location.long} \n Latitud = ${location.lat}` : ''}</div>
                         </CRow>
                     </CCol>
                 </CRow>
@@ -808,12 +792,12 @@ function Profile(props) {
                 </CRow>
                 <CRow>
                     <CCol sm="6">
-                        
+
                     </CCol>
                     <CCol sm="6">
                         <CRow>
                             <CCol sm="6" className="mb-3 mb-xl-0">
-                                
+
                             </CCol>
                             <CCol sm="6" className="mb-3 mb-xl-0">
                                 <CButton onClick={onClick} name="guardar" block color="info">Guardar Perfil</CButton>
@@ -821,7 +805,7 @@ function Profile(props) {
                         </CRow>
                     </CCol>
                 </CRow>
-                
+
             </div>
         </>
     )
