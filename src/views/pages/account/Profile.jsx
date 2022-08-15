@@ -8,6 +8,8 @@ import {
 } from "react-router-dom";
 import { useToasts } from 'react-toast-notifications';
 import { reactLocalStorage } from 'reactjs-localstorage';
+import Select from 'react-select';
+import { logo } from 'src/assets/icons/logo';
 
 function Profile(props) {
     const history = useHistory();
@@ -22,6 +24,16 @@ function Profile(props) {
     });
     const inputFile = useRef(null)
 
+    const [imageProfile,setImageProfile] = useState({
+        img: null,
+        file: null
+    });
+
+    const handleChangeImage = e => {
+        console.log(e);
+        setImageProfile({img: URL.createObjectURL(e.target.files[0]),file: e.target.files[0]})
+    }
+
     const [profile, setProfile] = useState({
         nombre: "",
         apellido: "",
@@ -34,10 +46,12 @@ function Profile(props) {
         nombre_tienda: "",
         nit: "",
         tipo_producto: "",
-        logo: [],
+        logo: "",
         direccion_de_recolecta: "",
         departamento: "",
+        departamentoId: 0,
         municipio: "",
+        municipioId: 0,
         nombre_de_cuenta: "",
         numero_de_cuenta: "",
         tipo_de_cuenta: "",
@@ -220,7 +234,6 @@ function Profile(props) {
                     long: data_usuario.lon
                 })
             }
-
             setProfile({
                 ...profile,
                 ...data_usuario,
@@ -231,8 +244,12 @@ function Profile(props) {
                 nombre_banco: data_usuario.cuenta_banco,
                 numero_de_cuenta: data_usuario.cuenta_numero,
                 tipo_de_cuenta: data_usuario.cuenta_tipo,
-                tipo_producto: data_usuario.tipo_producto
+                tipo_producto: data_usuario.tipo_producto,
+                departamentoId: data_usuario.departamentoId,
+                municipioid: data_usuario.municipioId,
+                logo: `https://ws.conectaguate.com/${data_usuario.img}`
             })
+            searchMunicipios(data_usuario.departamentoId);
         });
     }, []);
 
@@ -242,12 +259,6 @@ function Profile(props) {
 
     const addUserInfo = () => {
         const user_object = reactLocalStorage.getObject('user');
-        const config = {
-            headers: {
-                'Authorization': `Bearer ${user_object.token}`,
-                'Content-Type': 'application/json'
-            }
-        };
 
         let mes = (parseInt(profile.fecha_nacimiento_month) < 10) ? "0" + profile.fecha_nacimiento_month : profile.fecha_nacimiento_month;
         let dia = (parseInt(profile.fecha_nacimiento_day) < 10) ? "0" + profile.fecha_nacimiento_day : profile.fecha_nacimiento_day;
@@ -265,6 +276,8 @@ function Profile(props) {
             direccion_recoleccion: profile.direccion_de_recolecta,
             departamento: profile.departamento,
             municipio: profile.municipio,
+            departamentoId: parseInt(profile.departamentoId),
+            municipioId: parseInt(profile.municipioId),
             location: false,
             lat: location.lat,
             lon: location.long,
@@ -285,11 +298,15 @@ function Profile(props) {
             data: data_body
         }).then(
             (result) => {
-                addToast(`Informacion guardada exitosamente`, {
-                    appearance: 'success',
-                    autoDismiss: true,
-                    autoDismissTimeout: 4000
-                });
+                if(imageProfile === null){
+                    addToast(`Informacion guardada exitosamente`, {
+                        appearance: 'success',
+                        autoDismiss: true,
+                        autoDismissTimeout: 4000
+                    });
+                }else{
+                    uploadFile();
+                }
             },
             (error) => {
                 if (error.response) {
@@ -302,6 +319,27 @@ function Profile(props) {
             });
 
     }
+
+    const searchMunicipios = (departamentoId) => {
+        const user_object = reactLocalStorage.getObject('user');
+        const config = {
+            headers: { Authorization: `Bearer ${user_object.token}` }
+        };
+        
+        axios.get(
+            `https://ws.conectaguate.com/api/v1/site/departamentos/${departamentoId}`,
+            config,
+        ).then(
+            (result) => {
+                const municipios_response = result.data.Data.municipios;
+                setMunicipios(municipios_response);
+            },
+            (error) => {
+                if (error.response) {
+                }
+            }
+        );
+    };
 
 
     useEffect(() => {
@@ -323,45 +361,11 @@ function Profile(props) {
                 },
                 (error) => {
                     if (error.response) {
-                    }
-                });
-
-            axios.get(
-                'https://ws.conectaguate.com/api/v1/site/municipios/',
-                config,
-            ).then(
-                (result) => {
-                    const municipios_response = result.data.Data;
-                    setMunicipios(municipios_response);
-                },
-                (error) => {
-                    if (error.response) {
+                        console.log(error)
                     }
                 });
         }
     }, []);
-
-    const searchMunicipios = (e) => {
-        const { value } = e.target;
-        const user_object = reactLocalStorage.getObject('user');
-        const config = {
-            headers: { Authorization: `Bearer ${user_object.token}` }
-        };
-        
-        axios.get(
-            `https://ws.conectaguate.com/api/v1/site/departamentos/nombre/${value}`,
-            config,
-        ).then(
-            (result) => {
-                const municipios_response = result.data.Data.municipios;
-                setMunicipios(municipios_response);
-            },
-            (error) => {
-                if (error.response) {
-                }
-            }
-        );
-    };
 
     useEffect(() => {
         let number_of_days = 0;
@@ -452,6 +456,54 @@ function Profile(props) {
             })
         }
     }
+
+    const uploadFile = () => { 
+        const user_object = reactLocalStorage.getObject('user');
+        const config = {
+            headers: { Authorization: `Bearer ${user_object.token}`, 'Content-Type': 'multipart/form-data' }
+        };
+        console.log(config);
+        // Create an object of formData 
+        const formData = new FormData(); 
+        console.log(imageProfile.file);
+        // Update the formData object 
+        formData.append( 
+          "img", 
+          imageProfile.file, 
+          imageProfile.file.name 
+        ); 
+       
+        // Details of the uploaded file 
+        console.log(imageProfile); 
+       
+        // Request made to the backend api 
+        // Send formData object 
+        axios({
+            method: 'post',
+            url: 'https://ws.conectaguate.com/api/v1/site/usuario/imagen',
+            headers: {
+                'Authorization': `Bearer ${user_object.token}`,
+                'Content-Type': 'multipart/form-data'
+            },
+            data: formData
+        }).then(
+            (result) => {
+                console.log(result);
+                addToast(`Informacion guardada exitosamente`, {
+                    appearance: 'success',
+                    autoDismiss: true,
+                    autoDismissTimeout: 4000
+                });
+            },
+            (error) => {
+                if (error.response) {
+                    console.log(error)
+                }
+            }
+        );
+         
+        
+    }; 
 
     return (
         <>
@@ -673,7 +725,7 @@ function Profile(props) {
                             </CFormGroup>
                         </CFormGroup>
                     </CCol>
-                    <CCol sm="7">
+                    <CCol sm="5">
                         <CFormGroup>
                             <CLabel htmlFor="logo">Logo de tienda / empresa</CLabel>
                             <CRow>
@@ -684,13 +736,16 @@ function Profile(props) {
                                             inputFile.current.click();
                                         }}
                                     >Cargar logo</CButton>
-                                    <input type='file' id='file' ref={inputFile} style={{ display: 'none' }} />
+                                    <input type='file' id='img' name='img' ref={inputFile} style={{ display: 'none' }} onChange={handleChangeImage} />
                                 </CCol>
                                 <CCol sm="7" className="mb-3 mb-xl-0">
-                                    El archivo no debe exceder de 2mb, jpg, png
+                                        El archivo no debe exceder de 2mb, jpg, png
                                 </CCol>
                             </CRow>
                         </CFormGroup>
+                    </CCol>
+                    <CCol sm="2">
+                        <img src={ imageProfile.img !== null ? imageProfile.img : profile.logo !== null ? profile.logo : 'https://icon-library.com/images/upload-picture-icon/upload-picture-icon-14.jpg' } style={{ width: '100px'}} alt="img"/>
                     </CCol>
                 </CRow>
                 <CRow>
@@ -706,10 +761,18 @@ function Profile(props) {
                         <CFormGroup>
                             <CLabel htmlFor="departamento">Departamento</CLabel>
                             <CFormGroup>
-                                <CSelect onChange={(e) => {handleChange(e);searchMunicipios(e)}} value={profile.departamento} custom name="departamento" id="departamento">
-                                    <option></option>
+                                <CSelect
+                                    styles={{ border: '0px solid' }}
+                                    className="card-input"
+                                    placeholder={"Departamento/Municipio"}
+                                    name="departamentoId"
+                                    id="departamentoId"
+                                    onChange={(e) => {handleChange(e);searchMunicipios(e.target.value)}}
+                                    custom
+                                    value={profile.departamentoId}
+                                >
                                     {departamentos.map((elem) => {
-                                        return <option key={elem.id} value={elem.nombre}>{elem.nombre}</option>
+                                        return <option key={elem.id} value={elem.id} >{elem.nombre}</option>
                                     })}
                                 </CSelect>
                             </CFormGroup>
@@ -719,10 +782,9 @@ function Profile(props) {
                         <CFormGroup>
                             <CLabel htmlFor="municipio">Municipio</CLabel>
                             <CFormGroup>
-                                <CSelect onChange={handleChange} value={profile.municipio} custom name="municipio" id="municipio">
-                                    <option></option>
+                                <CSelect onChange={handleChange} value={profile.municipioId} custom name="municipioId" id="municipioId">
                                     {municipios.map((elem) => {
-                                        return <option key={elem.id} value={elem.nombre}>{elem.nombre}</option>
+                                        return <option key={elem.id} value={elem.id}>{elem.nombre}</option>
                                     })}
                                 </CSelect>
                             </CFormGroup>

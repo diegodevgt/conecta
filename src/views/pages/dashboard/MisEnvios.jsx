@@ -1,48 +1,23 @@
-import React, { lazy, Fragment, useState, useEffect, useRef} from 'react'
-import {isMobile} from 'react-device-detect';
 import {
-    CBadge,
-    CButton,
-    CButtonGroup,
-    CCard,
-    CCardBody,
-    CCardFooter,
-    CCardHeader,
-    CCol,
-    CProgress,
-    CRow,
-    CCallout,
-    CFormGroup,
-    CLabel,
-    CInput,
-    CSwitch,
-    CInputGroupAppend,
-    CInputGroup,
-    CInputGroupText,
-    CContainer,
-    CCollapse,
-    CSelect,
-    CImg
-  } from '@coreui/react'
-  import { ToastProvider, useToasts } from 'react-toast-notifications';
-  import axios from 'axios';
-  import { 
-      useHistory,
-      useRouteMatch,
-      useParams
-  } from "react-router-dom";
-  import { AgGridReact, AgGridColumn } from 'ag-grid-react';
-  import 'ag-grid-community/dist/styles/ag-grid.css';
-  import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
-  import 'ag-grid-community/dist/styles/ag-theme-material.css';
-  import CIcon from '@coreui/icons-react';
-  import DatePicker from "react-datepicker";
+    CButton, CCard, CCol, CImg, CInput, CRow
+} from '@coreui/react';
+import 'ag-grid-community/dist/styles/ag-grid.css';
+import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
+import 'ag-grid-community/dist/styles/ag-theme-material.css';
+import { AgGridReact } from 'ag-grid-react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import DatePicker from "react-datepicker";
+import { isMobile } from 'react-device-detect';
+import {
+    useHistory
+} from "react-router-dom";
 
   import "react-datepicker/dist/react-datepicker.css";
-  import ButtonCellRenderer from './cell_renderer/ButtonCellRenderer'
-  import DescargarCellRenderer from './cell_renderer/DescargarCellRenderer'
-  import IdCellRenderer from './cell_renderer/IdCellRenderer'
-  import {reactLocalStorage} from 'reactjs-localstorage';
+import { reactLocalStorage } from 'reactjs-localstorage';
+import ButtonCellRenderer from './cell_renderer/ButtonCellRenderer';
+import DescargarCellRenderer from './cell_renderer/DescargarCellRenderer';
+import IdCellRenderer from './cell_renderer/IdCellRenderer';
 
 
 function MisEnvios(props) {
@@ -58,6 +33,30 @@ function MisEnvios(props) {
     const [transportes, setTransportes] = useState(null);
     const [estatus, setEstatus] = useState(null);
     const [tipos_de_pago, setTiposDePago] = useState(null);
+    const FileDownload = require('js-file-download');
+    const descargarGuia = (key) =>{
+        const user_object = reactLocalStorage.getObject('user');
+        let bearer = "";
+
+        if(user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0){
+            reactLocalStorage.remove('user');
+            history.push('/login');
+        }else{  
+            bearer =  `Bearer ${user_object.token}`;
+        }   
+        
+        axios({
+            url: `https://ws.conectaguate.com/api/v1/site/pedido/guia/${key}`,
+            method: 'GET',
+            responseType: 'blob',
+            headers: { 
+                "Authorization": bearer
+            }
+        }).then((response)=>{
+            FileDownload(response.data, `${key}.pdf`);
+        });
+    }
+
     const [column_definitions, setColumnDefinitions] = useState({
         columnDefs: [
             { 
@@ -87,15 +86,12 @@ function MisEnvios(props) {
                 }, 
             },
             { 
-                haederName: '',  
-                field: 'Descargar',
+                haederName: 'Guia',  
+                field: 'key',
                 cellRenderer: 'btnCellRendererDescargar',
                 cellRendererParams: {
                     clicked: function(url) {
-                        let  getUrl = window.location;
-                        let  baseUrl = getUrl.protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
-                        url = `${baseUrl}#/tracking/${url}`
-                        window.open(url, '_blank').focus();
+                        descargarGuia(url);
                     },
                   },
             },
@@ -200,7 +196,6 @@ function MisEnvios(props) {
                         ;
                 }
             })
-            console.log(values);
         });
     },[]);
 
@@ -235,7 +230,6 @@ function MisEnvios(props) {
         if(transportes !== null && estatus !== null && tipos_de_pago !== null){
             const user_object = reactLocalStorage.getObject('user');
             let bearer = "";
-            console.log(user_object);
 
             if(user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0){
                 reactLocalStorage.remove('user');
@@ -259,7 +253,6 @@ function MisEnvios(props) {
                 let i = 1;
 
                 data.forEach((elem)=>{
-                    console.log(elem);
                     if(elem.created_at){
                         let date = new Date(elem.created_at);
                         let year = date.getFullYear();
@@ -273,7 +266,7 @@ function MisEnvios(props) {
                         }
                         elem.fecha_creacion = dt+'/'+month+'/'+year;
                     }
-                
+                    
 
                     let object ={ 
                         pedido: elem.id, 
@@ -282,6 +275,7 @@ function MisEnvios(props) {
                         tipo_de_envio: tipos_de_pago[elem.tipo_pago] ? tipos_de_pago[elem.tipo_pago].nombre : "N/A", 
                         estado: elem.status, 
                         link: elem.guia,
+                        key: elem.guia,
                         fecha_creacion: elem.fecha_creacion,
                         date_created: elem.created_at,
                         fecha_entrega: ""
@@ -358,7 +352,6 @@ function MisEnvios(props) {
                                 id="fecha-ini" 
                                 className="filter-container-input form-control"  
                                 onChange={(date) => {
-                                    console.log(date);
                                     setStartDate(date)
                                 }} 
                                 style={{
@@ -381,7 +374,6 @@ function MisEnvios(props) {
                                 id="fecha-fin" 
                                 className="filter-container-input form-control"  
                                 onChange={(date) => {
-                                    console.log(date);
                                     setEndDate(date)
                                 }} 
                                 style={{

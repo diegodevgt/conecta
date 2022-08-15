@@ -38,7 +38,9 @@ const CreacionPedido = () => {
         correo_destinatario: "",
         municipio_destinatario: "test",
         direccion_destinatario: "",
-        referencias_destinatario: ""
+        referencias_destinatario: "",
+        pobladoDestino: 0,
+        pobladoOrigen: 0
     });
     const [poblado, setPoblado] = useState([]);
     const [pobladoOrigen, setPobladoOrigen] = useState([]);
@@ -69,7 +71,7 @@ const CreacionPedido = () => {
     const [municipios, setMunicipios] = useState([]);
     const [value_departamento, setValueDepartamento] = useState("Guatemala");
     const [value_municipio, setValueMunicipio] = useState("Guatemala");
-
+    const FileDownload = require('js-file-download');
     // Fetch de departamentos
 
     useEffect(() => {
@@ -138,18 +140,20 @@ const CreacionPedido = () => {
             direccion_origen: data.direccion_remitente,
             nombre_origen: data.remitente,
             telefono_origen: data.telefono_remitente,
-            departamento_origen: 1,
-            municipio_origen: 1,
+            departamento_origen: 0,
+            municipio_origen: 0,
             direccion_destino: data.direccion_destinatario,
             nombre_destino: data.name_destinatario,
             telefono_destino: data.telefono_destinatario,
-            departamento_destino: 1,
-            municipio_destino: 1,
+            departamento_destino: 0,
+            municipio_destino: 0,
             transporte: parseInt(rows_data[0].transporte),
             tipo_envio: 1,  //
             tipo_pago: tipo_pa, // 
             COD: (cod_value !== 0) ? true : false,
             seguro: seguro_value,
+            pobladoDestino: data.pobladoDestino,
+            pobladoOrigen: data.pobladoOrigen,
             costo_envio: costo_de_envio, // return api cotizar
             total: total_valor_declarado    // return api cotizar 
         };
@@ -254,19 +258,21 @@ const CreacionPedido = () => {
             direccion_origen: data.direccion_remitente,
             nombre_origen: data.remitente,
             telefono_origen: data.telefono_remitente,
-            departamento_origen: 1,
-            municipio_origen: 1,
+            departamento_origen: 0,
+            municipio_origen: 0,
             direccion_destino: data.direccion_destinatario,
             nombre_destino: data.name_destinatario,
             telefono_destino: data.telefono_destinatario,
-            departamento_destino: 1,
-            municipio_destino: 1,
+            departamento_destino: 0,
+            municipio_destino: 0,
             transporte: parseInt(rows_data[0].transporte),
             tipo_envio: 1,  //
-            tipo_pago: 0, // 
+            tipo_pago: tipo_pa, // 
             COD: (cod_value !== 0) ? true : false,
             seguro: seguro_value,
-            costo_envio: total_valor_declarado, // return api cotizar
+            pobladoDestino: data.pobladoDestino,
+            pobladoOrigen: data.pobladoOrigen,
+            costo_envio: costo_de_envio, // return api cotizar
             total: total_valor_declarado    // return api cotizar 
         };
 
@@ -493,6 +499,26 @@ const CreacionPedido = () => {
         setData(data_copy);
     }
 
+    const handleChangePobladoOrg = (e) => {
+        const { value } = e;
+        let data_copy = JSON.parse(JSON.stringify(data));
+        data_copy = {
+            ...data_copy,
+            "pobladoOrigen": value
+        }
+        setData(data_copy);
+    }
+
+    const handleChangePobladoDest = (e) => {
+        const { value } = e;
+        let data_copy = JSON.parse(JSON.stringify(data));
+        data_copy = {
+            ...data_copy,
+            "pobladoDestino": value
+        }
+        setData(data_copy);
+    }
+
     const nextStep = (step) => {
         let allow = true;
         if (step === 1 && data.remitente !== 'testmode') {
@@ -599,6 +625,29 @@ const CreacionPedido = () => {
         });
     }
 
+    const descargarGuia = (key) =>{
+        const user_object = reactLocalStorage.getObject('user');
+        let bearer = "";
+
+        if(user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0){
+            reactLocalStorage.remove('user');
+            history.push('/login');
+        }else{  
+            bearer =  `Bearer ${user_object.token}`;
+        }   
+        
+        axios({
+            url: `https://ws.conectaguate.com/api/v1/site/pedido/guia/${key}`,
+            method: 'GET',
+            responseType: 'blob',
+            headers: { 
+                "Authorization": bearer
+            }
+        }).then((response)=>{
+            FileDownload(response.data, `${key}.pdf`);
+        });
+    }
+
     // const [departamentos, setDepartamentos] = useState([]);
     // const [municipios, setMunicipios] = useState([]);
     // const [value_departamento, setValueDepartamento] = useState("");
@@ -627,6 +676,8 @@ const CreacionPedido = () => {
                         value_municipio={value_municipio}
                         setValueDepartamento={setValueDepartamento}
                         setValueMunicipio={setValueMunicipio}
+                        handleChangePobladoOrg={handleChangePobladoOrg}
+                        handleChangePobladoDest={handleChangePobladoDest}
                     />
                     :
                     (step === 1) ?
@@ -677,6 +728,7 @@ const CreacionPedido = () => {
                                 pedido={pedido_creado}
                                 pedido_id={pedido_id}
                                 files={files}
+                                descargarGuia={descargarGuia}
                             />}
             </div> : null
     )
@@ -795,6 +847,9 @@ const Step1 = (props) => {
                                                 onKeyDown={props.buscarPobladoOrigen}
                                                 isSearchable={true}
                                                 placeholder={"Departamento/Municipio"}
+                                                id="pobladoOrigen"
+                                                onChange={props.handleChangePobladoOrg}
+                                                required
                                                 options={
                                                     props.pobladoOrig.map(item => {
                                                         return { value: item.id, label: item.poblado }
@@ -802,9 +857,13 @@ const Step1 = (props) => {
                                                 }
                                                 value={
                                                     props.pobladoOrig.map( (item,index) => {
-                                                        if(index === 0){
+                                                        if(index === 0 && props.data.pobladoOrigen === 0){
                                                             return { value: item.id, label: item.poblado }
                                                         }
+                                                        if(props.data.pobladoOrigen !== 0 && props.data.pobladoOrigen === item.id){
+                                                            return { value: item.id, label: item.poblado }
+                                                        }
+
                                                     })
                                                 }
                                             />
@@ -902,7 +961,9 @@ const Step1 = (props) => {
                                                 className="card-input"
                                                 onKeyDown={props.buscarPoblado}
                                                 isSearchable={true}
+                                                onChange={props.handleChangePobladoDest}
                                                 placeholder={"Departamento/Municipio"}
+                                                required
                                                 options={
                                                     props.poblado.map(item => {
                                                         return { value: item.id, label: item.poblado }
@@ -1490,9 +1551,9 @@ const Step2 = (props) => {
                                     </CRow>
                                 </div>
                                 <CFormGroup style={{ display: (cod === 'off') ? 'none' : 'block' }}>
-                                    <div className="input-box">
-                                        <span className="prefix">Q</span>
-                                        <CInput value={input_value_cod} onChange={handleChange} className="card-input" type="number" id="cod_input" placeholder="monto" style={{ backgroundColor: '#F4F5F9' }} required />
+                                    <div className="input-box showMore">
+                                        <strong style={{ fontSize: '1.5em !important' }}><span className="prefix">Q</span></strong>
+                                        <CInput value={input_value_cod} onChange={handleChange} className="card-input" type="number" id="cod_input" placeholder="monto" style={{ fontSize: '1.5em !important' }} required />
                                     </div>
                                 </CFormGroup>
                                 <div className="card-body-step2">
@@ -1515,7 +1576,7 @@ const Step2 = (props) => {
                                     </CRow>
                                 </div>
                                 <CFormGroup style={{ display: (seguro === 'off') ? 'none' : 'block' }}>
-                                    <div className="input-box">
+                                    <div className="input-box showMore">
                                         <span className="prefix">Q</span>
                                         <CInput type="number" onChange={handleChange} value={input_value_seguro} className="card-input" id="seguro_input" placeholder="monto a asegurar" style={{ backgroundColor: '#F4F5F9' }} required />
                                     </div>
@@ -1536,7 +1597,7 @@ const Step2 = (props) => {
                                     <h3>Tengo un cupón</h3>
                                 </div>
                                 <CFormGroup>
-                                    <CInput className="card-input" onChange={handleChange} id="cupon_input" placeholder="añadir código" style={{ backgroundColor: '#F4F5F9' }} required />
+                                    <CInput className="card-input showMore" onChange={handleChange} id="cupon_input" placeholder="añadir código" style={{ backgroundColor: '#F4F5F9' }} required />
                                 </CFormGroup>
                             </CCol>
                             <CCol sm="7" className="card-values-conecta">
@@ -2078,7 +2139,13 @@ const Step4 = (props) => {
                 </CRow>
                 <br />
                 <CRow className="subtitle-container">
-                    <CButton block color="primary"> Descargar guía </CButton>
+                    <CButton block color="primary" 
+                        onClick={() => {
+                            props.descargarGuia(props.pedido);
+                        }}
+                    >
+                        Descargar guía 
+                    </CButton>
                 </CRow>
                 <br />
                 <CRow className="subtitle-container-info">

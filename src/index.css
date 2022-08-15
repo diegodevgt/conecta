@@ -3511,3 +3511,13 @@ body .packs-container .pack{
   font-weight: 500;
 }
 
+.input-box.showMore input:focus{
+  outline: none;
+  box-shadow: none;
+}
+.input-box.showMore,.card-input.showMore{
+  border: 1px solid rgb(79, 108, 188) !important;
+}
+.input-box.showMore input,.input-box.showMore span,.card-input.showMore input{
+  font-size: 1.4em !important;
+}
