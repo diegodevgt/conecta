@@ -372,15 +372,11 @@ function CrossSelling(props) {
                             <CRow className="justify-content-md-left mb-3">
                                 {   
                                     data_cross_selling.map((elem, index)=>{
-                                        if(index < 3){
-                                            return <CardProduct elem={elem} update={index} deleteProduct={deleteProduct} key={`card_product_${index}`} />
-                                        }
-                                        return null;
+                                        return <CardProduct elem={elem} update={index} deleteProduct={deleteProduct} key={`card_product_${index}`} />
                                     })
                                 }      
                                 {
-                                    (data_cross_selling.length < 3) ?
-                                    <CardProduct elem={'img/sliders/default.jpg'} update={openModal}  key={`card_product_default`} /> : null
+                                    <CardProduct elem={'img/sliders/default.jpg'} update={openModal}  key={`card_product_default`} />
                                 }   
                             </CRow>
                             {

@@ -298,7 +298,7 @@ function Profile(props) {
             data: data_body
         }).then(
             (result) => {
-                if(imageProfile === null){
+                if(imageProfile.file === null){
                     addToast(`Informacion guardada exitosamente`, {
                         appearance: 'success',
                         autoDismiss: true,
