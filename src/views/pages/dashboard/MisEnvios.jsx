@@ -13,18 +13,19 @@ import {
     useHistory
 } from "react-router-dom";
 
-  import "react-datepicker/dist/react-datepicker.css";
+import "react-datepicker/dist/react-datepicker.css";
 import { reactLocalStorage } from 'reactjs-localstorage';
 import ButtonCellRenderer from './cell_renderer/ButtonCellRenderer';
 import DescargarCellRenderer from './cell_renderer/DescargarCellRenderer';
 import IdCellRenderer from './cell_renderer/IdCellRenderer';
+import { element } from 'prop-types';
 
 
 function MisEnvios(props) {
     const size = useWindowSize();
     const history = useHistory();
     const [number_rows, setNumberRows] = useState("20");
-    const [aggrid,  setAggrid] = useState(null);
+    const [aggrid, setAggrid] = useState(null);
     const [loading, setLoading] = useState(false);
     const [startDate, setStartDate] = useState(new Date());
     const [endDate, setEndDate] = useState(new Date());
@@ -34,79 +35,91 @@ function MisEnvios(props) {
     const [estatus, setEstatus] = useState(null);
     const [tipos_de_pago, setTiposDePago] = useState(null);
     const FileDownload = require('js-file-download');
-    const descargarGuia = (key) =>{
+    const descargarGuia = (key) => {
         const user_object = reactLocalStorage.getObject('user');
         let bearer = "";
 
-        if(user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0){
+        if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
             reactLocalStorage.remove('user');
             history.push('/login');
-        }else{  
-            bearer =  `Bearer ${user_object.token}`;
-        }   
-        
+        } else {
+            bearer = `Bearer ${user_object.token}`;
+        }
+
         axios({
             url: `https://ws.conectaguate.com/api/v1/site/pedido/guia/${key}`,
             method: 'GET',
             responseType: 'blob',
-            headers: { 
+            headers: {
                 "Authorization": bearer
             }
-        }).then((response)=>{
+        }).then((response) => {
             FileDownload(response.data, `${key}.pdf`);
         });
     }
 
     const [column_definitions, setColumnDefinitions] = useState({
         columnDefs: [
-            { 
-                headerName: 'Pedido', 
+            {
+                headerName: 'Pedido',
                 field: 'pedido',
             },
-            { 
-                headerName: 'Destinatario', 
-                field: 'destinatario' },
-            { 
-                headerName: 'Destino', 
-                field: 'destino' },
-            { 
-                headerName: 'Tipo de envio', 
-                field: 'tipo_de_envio' },
-            { 
-                headerName: 'Creación', 
-                field: 'fecha_creacion' },
-            { 
-                headerName: 'Estado', 
+            {
+                headerName: 'Destinatario',
+                field: 'destinatario'
+            },
+            {
+                headerName: 'Localidad Org',
+                field: 'localidad_org'
+            },
+            {
+                headerName: 'Destino',
+                field: 'destino'
+            },
+            {
+                headerName: 'Localidad Dest',
+                field: 'localidad_dest'
+            },
+            {
+                headerName: 'Tipo de envio',
+                field: 'tipo_de_envio'
+            },
+            {
+                headerName: 'Creación',
+                field: 'fecha_creacion'
+            },
+            {
+                headerName: 'Estado',
                 field: 'estado',
                 cellRenderer: 'idBtnCellRenderer',
                 cellRendererParams: {
-                    clicked: function(field) {
-                    alert(`${field} was clicked`);
+                    clicked: function (field) {
+                        alert(`${field} was clicked`);
                     },
-                }, 
+                },
             },
-            { 
-                haederName: 'Guia',  
+            {
+                haederName: 'Guia',
                 field: 'key',
                 cellRenderer: 'btnCellRendererDescargar',
                 cellRendererParams: {
-                    clicked: function(url) {
+                    clicked: function (url) {
                         descargarGuia(url);
                     },
-                  },
+                },
             },
-            { 
-                haederName: '',  
+            {
+                haederName: '',
                 field: 'link',
                 cellRenderer: 'btnCellRenderer',
                 cellRendererParams: {
-                    clicked: function(url) {
-                        let  getUrl = window.location;
-                        let  baseUrl = getUrl.protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
+                    clicked: function (url) {
+                        let getUrl = window.location;
+                        let baseUrl = getUrl.protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
                         url = `${baseUrl}#/tracking/${url}`
                         window.open(url, '_blank').focus();
                     },
-                  },
+                },
             }
         ],
         rowData: [],
@@ -118,47 +131,47 @@ function MisEnvios(props) {
     function randomDate(start, end) {
         return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
     }
-      
+
 
     // Hook
     function useWindowSize() {
         // Initialize state with undefined width/height so server and client renders match
         // Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
         const [windowSize, setWindowSize] = useState({
-        width: undefined,
-        height: undefined,
+            width: undefined,
+            height: undefined,
         });
         useEffect(() => {
-        // Handler to call on window resize
-        function handleResize() {
-            // Set window width/height to state
-            setWindowSize({
-            width: window.innerWidth,
-            height: window.innerHeight,
-            });
-        }
-        // Add event listener
-        window.addEventListener("resize", handleResize);
-        // Call handler right away so state gets updated with initial window size
-        handleResize();
-        // Remove event listener on cleanup
-        return () => window.removeEventListener("resize", handleResize);
+            // Handler to call on window resize
+            function handleResize() {
+                // Set window width/height to state
+                setWindowSize({
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                });
+            }
+            // Add event listener
+            window.addEventListener("resize", handleResize);
+            // Call handler right away so state gets updated with initial window size
+            handleResize();
+            // Remove event listener on cleanup
+            return () => window.removeEventListener("resize", handleResize);
         }, []); // Empty array ensures that effect is only run on mount
         return windowSize;
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         setColumnDefinitions({
             ...column_definitions,
         })
         setLoading(true);
 
-    },[])
+    }, [])
 
-    useEffect(()=>{
+    useEffect(() => {
         const user_object = reactLocalStorage.getObject('user');
 
-        if(user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0){
+        if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
             reactLocalStorage.remove('user');
             setUser({});
             history.push('/login');
@@ -166,28 +179,28 @@ function MisEnvios(props) {
         }
         let base_url = 'https://ws.conectaguate.com/api'
 
-        let transportes = new Promise((resolve, reject) => axios({method:'get',url:base_url+'/v1/site/transportes',headers: {'Authorization': `Bearer ${user_object.token}`}}).then((data)=>resolve({key: 'transportes', data:data.data['Data']},'transportes')));
-        let estatus = new Promise((resolve, reject) => axios({method:'get',url:base_url+'/v1/site/estatus',headers: {'Authorization': `Bearer ${user_object.token}`}}).then((data)=>resolve({key: 'estatus', data:data.data['Data']},'estatus')));
-        let tipos_de_pago = new Promise((resolve, reject) => axios({method:'get',url:base_url+'/v1/site/tipopago',headers: {'Authorization': `Bearer ${user_object.token}`}}).then((data)=>resolve({key: 'tipos_de_pago', data:data.data['Data']},'tipos_de_pago')));
+        let transportes = new Promise((resolve, reject) => axios({ method: 'get', url: base_url + '/v1/site/transportes', headers: { 'Authorization': `Bearer ${user_object.token}` } }).then((data) => resolve({ key: 'transportes', data: data.data['Data'] }, 'transportes')));
+        let estatus = new Promise((resolve, reject) => axios({ method: 'get', url: base_url + '/v1/site/estatus', headers: { 'Authorization': `Bearer ${user_object.token}` } }).then((data) => resolve({ key: 'estatus', data: data.data['Data'] }, 'estatus')));
+        let tipos_de_pago = new Promise((resolve, reject) => axios({ method: 'get', url: base_url + '/v1/site/tipopago', headers: { 'Authorization': `Bearer ${user_object.token}` } }).then((data) => resolve({ key: 'tipos_de_pago', data: data.data['Data'] }, 'tipos_de_pago')));
 
-        Promise.all([transportes,estatus,tipos_de_pago]).then((values) => {
-            values.forEach((elem)=>{
+        Promise.all([transportes, estatus, tipos_de_pago]).then((values) => {
+            values.forEach((elem) => {
                 let obj = {};
-                switch(elem.key){
+                switch (elem.key) {
                     case 'transportes':
-                        elem.data.forEach((elem)=>{
+                        elem.data.forEach((elem) => {
                             obj[elem.id] = elem;
                         })
                         setTransportes(obj);
                         break;
                     case 'estatus':
-                        elem.data.forEach((elem)=>{
+                        elem.data.forEach((elem) => {
                             obj[elem.id] = elem;
                         })
                         setEstatus(obj);
                         break;
                     case 'tipos_de_pago':
-                        elem.data.forEach((elem)=>{
+                        elem.data.forEach((elem) => {
                             obj[elem.id] = elem;
                         })
                         setTiposDePago(obj);
@@ -197,19 +210,19 @@ function MisEnvios(props) {
                 }
             })
         });
-    },[]);
+    }, []);
 
-    const handleChange = (e) =>{
-        const {name, value} = e.target;
+    const handleChange = (e) => {
+        const { name, value } = e.target;
         setInputSearch(value);
         onFilterTextBoxChanged();
     }
 
-    const onGridReady = (params) =>{
-        setAggrid({api: params.api, column_api:params.columnApi});
-        if(!isMobile || size > 992) {
+    const onGridReady = (params) => {
+        setAggrid({ api: params.api, column_api: params.columnApi });
+        if (!isMobile || size > 992) {
             params.api.sizeColumnsToFit();
-        }   
+        }
     }
 
     const onFilterTextBoxChanged = () => {
@@ -226,20 +239,20 @@ function MisEnvios(props) {
         setNumberRows(value);
     };
 
-    useEffect(()=>{
-        if(transportes !== null && estatus !== null && tipos_de_pago !== null){
+    useEffect(() => {
+        if (transportes !== null && estatus !== null && tipos_de_pago !== null) {
             const user_object = reactLocalStorage.getObject('user');
             let bearer = "";
 
-            if(user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0){
+            if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
                 reactLocalStorage.remove('user');
                 history.push('/login');
-            }else{  
-                bearer =  `Bearer ${user_object.token}`;
-            }   
+            } else {
+                bearer = `Bearer ${user_object.token}`;
+            }
 
             const config = {
-                headers: { 
+                headers: {
                     "Authorization": bearer
                 }
             };
@@ -247,33 +260,34 @@ function MisEnvios(props) {
             axios.get(
                 'https://ws.conectaguate.com/api/v1/site/user/pedidos/',
                 config
-            ).then((response)=>{
+            ).then(async (response) => {
                 let data_arr = [];
                 let data = response.data['Data'];
                 let i = 1;
-
-                data.forEach((elem)=>{
-                    if(elem.created_at){
+                console.log(data);
+                data.forEach((elem) => {
+                    if (elem.created_at) {
                         let date = new Date(elem.created_at);
                         let year = date.getFullYear();
-                        let month = date.getMonth()+1;
+                        let month = date.getMonth() + 1;
                         let dt = date.getDate();
                         if (dt < 10) {
-                        dt = '0' + dt;
+                            dt = '0' + dt;
                         }
                         if (month < 10) {
-                        month = '0' + month;
+                            month = '0' + month;
                         }
-                        elem.fecha_creacion = dt+'/'+month+'/'+year;
+                        elem.fecha_creacion = dt + '/' + month + '/' + year;
                     }
-                    
 
-                    let object ={ 
-                        pedido: elem.id, 
-                        destinatario: elem.nombre_destino, 
+                    let object = {
+                        pedido: elem.id,
+                        destinatario: elem.nombre_destino,
                         destino: elem.direccion_destino,
-                        tipo_de_envio: tipos_de_pago[elem.tipo_pago] ? tipos_de_pago[elem.tipo_pago].nombre : "N/A", 
-                        estado: elem.status, 
+                        localidad_org: `${elem.departamento_origen} - ${elem.municipio_origen}`,
+                        localidad_dest: `${elem.departamento_destino} - ${elem.municipio_destino}`,
+                        tipo_de_envio: tipos_de_pago[elem.tipo_pago] ? tipos_de_pago[elem.tipo_pago].nombre : "N/A",
+                        estado: elem.status,
                         link: elem.guia,
                         key: elem.guia,
                         fecha_creacion: elem.fecha_creacion,
@@ -291,16 +305,16 @@ function MisEnvios(props) {
                 })
             });
         }
-    },[transportes, estatus, tipos_de_pago]);
+    }, [transportes, estatus, tipos_de_pago]);
 
 
-    const searchDate = () =>{
+    const searchDate = () => {
         let data = column_definitions.rowDataWithoutFilter;
-        let date_filter = data.filter((elem)=>{
+        let date_filter = data.filter((elem) => {
             let start = new Date(startDate);
             let end = new Date(endDate);
             let date_filtered = new Date(elem.date_created);
-            if(date_filtered > start && date_filtered < end){
+            if (date_filtered > start && date_filtered < end) {
                 return true;
             }
         })
@@ -309,131 +323,131 @@ function MisEnvios(props) {
             rowData: date_filter
         })
     }
-    
+
 
     return (
         (loading) ?
-        <>
-        <div className="mis-envios-container">
-                <CRow>
-                    <CCol sm="12">
-                        <CCard className="card-header">
-                            <div className="mis-envios-title">
-                                Monitorea tus pedidos
-                            </div>
-                        </CCard>    
-                       
-                    </CCol>
-                </CRow>  
-                <CRow className="filter-container">
-                    <CCol sm="3" className="filter-row-responsive">
-                        <CRow>
-                            No. de Guía
-                        </CRow>
-                        <CRow>
-                            <CInput 
-                                type="text" 
-                                id="guia" 
-                                className="filter-container-input"  
-                                value={input_search}
-                                placeholder="" 
-                                style={{background:'white', border: '0px'}}
-                                onChange={handleChange}
-                            />
-                        </CRow>
-                    </CCol>
-                    <CCol sm="3" className="filter-row-responsive">
-                        <CRow>
-                            Inicio
-                        </CRow>
-                        <CRow>
-                            <DatePicker 
-                                selected={startDate}
-                                id="fecha-ini" 
-                                className="filter-container-input form-control"  
-                                onChange={(date) => {
-                                    setStartDate(date)
-                                }} 
-                                style={{
-                                    background:'white', 
-                                    border: '0px',
-                                    textAlign: 'left'
-                                }}
-                                maxDate={endDate}
-                                dateFormat="dd/MM/yyyy"
-                             />
-                        </CRow>
-                    </CCol>
-                    <CCol sm="3" className="filter-row-responsive">
-                        <CRow>
-                            Finalización
-                        </CRow>
-                        <CRow>
-                            <DatePicker 
-                                selected={endDate}
-                                id="fecha-fin" 
-                                className="filter-container-input form-control"  
-                                onChange={(date) => {
-                                    setEndDate(date)
-                                }} 
-                                style={{
-                                    background:'white', 
-                                    border: '0px',
-                                    textAlign: 'left'
-                                }}
-                                minDate={startDate}
-                                dateFormat="dd/MM/yyyy"
-                             />
-                        </CRow>
-                    </CCol>
-                    <CCol sm="3">
-                        <CRow>
-                        &nbsp;
-                        </CRow>
-                        <CRow className="row_button_filters">
-                            <CCol col="6" sm="12" md="12" xl className="mb-3 mb-xl-0">
-                                <CButton 
-                                    block 
-                                    className="button_filters"
-                                    style={{
-                                        background:'#f3bf34', 
-                                        fontWeight: '500'
+            <>
+                <div className="mis-envios-container">
+                    <CRow>
+                        <CCol sm="12">
+                            <CCard className="card-header">
+                                <div className="mis-envios-title">
+                                    Monitorea tus pedidos
+                                </div>
+                            </CCard>
+
+                        </CCol>
+                    </CRow>
+                    <CRow className="filter-container">
+                        <CCol sm="3" className="filter-row-responsive">
+                            <CRow>
+                                No. de Guía
+                            </CRow>
+                            <CRow>
+                                <CInput
+                                    type="text"
+                                    id="guia"
+                                    className="filter-container-input"
+                                    value={input_search}
+                                    placeholder=""
+                                    style={{ background: 'white', border: '0px' }}
+                                    onChange={handleChange}
+                                />
+                            </CRow>
+                        </CCol>
+                        <CCol sm="3" className="filter-row-responsive">
+                            <CRow>
+                                Inicio
+                            </CRow>
+                            <CRow>
+                                <DatePicker
+                                    selected={startDate}
+                                    id="fecha-ini"
+                                    className="filter-container-input form-control"
+                                    onChange={(date) => {
+                                        setStartDate(date)
                                     }}
-                                    onClick={searchDate}
-                                    >   
+                                    style={{
+                                        background: 'white',
+                                        border: '0px',
+                                        textAlign: 'left'
+                                    }}
+                                    maxDate={endDate}
+                                    dateFormat="dd/MM/yyyy"
+                                />
+                            </CRow>
+                        </CCol>
+                        <CCol sm="3" className="filter-row-responsive">
+                            <CRow>
+                                Finalización
+                            </CRow>
+                            <CRow>
+                                <DatePicker
+                                    selected={endDate}
+                                    id="fecha-fin"
+                                    className="filter-container-input form-control"
+                                    onChange={(date) => {
+                                        setEndDate(date)
+                                    }}
+                                    style={{
+                                        background: 'white',
+                                        border: '0px',
+                                        textAlign: 'left'
+                                    }}
+                                    minDate={startDate}
+                                    dateFormat="dd/MM/yyyy"
+                                />
+                            </CRow>
+                        </CCol>
+                        <CCol sm="3">
+                            <CRow>
+                                &nbsp;
+                            </CRow>
+                            <CRow className="row_button_filters">
+                                <CCol col="6" sm="12" md="12" xl className="mb-3 mb-xl-0">
+                                    <CButton
+                                        block
+                                        className="button_filters"
+                                        style={{
+                                            background: '#f3bf34',
+                                            fontWeight: '500'
+                                        }}
+                                        onClick={searchDate}
+                                    >
                                         <CRow>
-                                            <CCol sm="3" 
-                                                >
+                                            <CCol sm="3"
+                                            >
                                                 <CImg
-                                                src={`img/icons/mis-envios/buscar.svg`}
-                                                fluid
-                                                style={{width:'25px', cursor:'pointer'}}
-                                            />
+                                                    src={`img/icons/mis-envios/buscar.svg`}
+                                                    fluid
+                                                    style={{ width: '25px', cursor: 'pointer' }}
+                                                />
                                             </CCol>
                                             <CCol
                                                 className="export_button">
                                                 Aplicar
                                             </CCol>
                                         </CRow>
-                                </CButton>
-                            </CCol>
-                            <CCol col="6" sm="12" md="12" xl  className="mb-3 mb-xl-0"> 
-                                <CButton 
-                                    block 
-                                    className="button_filters"
-                                    style={{
-                                        background:'#afc7ff', 
-                                        fontWeight: '500'
-                                    }}
-                                    onClick={() => onBtnExport()}
-                                    >   
+                                    </CButton>
+                                </CCol>
+                                <CCol col="6" sm="12" md="12" xl className="mb-3 mb-xl-0">
+                                    <CButton
+                                        block
+                                        className="button_filters"
+                                        style={{
+                                            background: '#afc7ff',
+                                            fontWeight: '500'
+                                        }}
+                                        onClick={() => onBtnExport()}
+                                    >
                                         <CRow>
-                                            <CCol sm="3" 
-                                                >
+                                            <CCol sm="3"
+                                            >
                                                 <CImg
                                                     src={`img/icons/mis-envios/exportar.svg`}
                                                     fluid
-                                                    style={{width:'25px', cursor:'pointer'}}
+                                                    style={{ width: '25px', cursor: 'pointer' }}
                                                 />
                                             </CCol>
                                             <CCol
@@ -441,65 +455,65 @@ function MisEnvios(props) {
                                                 Exportar
                                             </CCol>
                                         </CRow>
-                                </CButton>
-                            </CCol>
-                        </CRow>
-                    </CCol>
-                </CRow>  
-                <CRow className="table-container">
-                    <CCol>
-                        <select 
-                            id="page-size"
-                            className="card-input" 
-                            onChange={() => onPageSizeChanged()} 
-                            style={{
-                                background:'white', 
-                                border: '0px', 
-                                color: '#768192',
-                                marginLeft: '1rem',
-                                padding: '.5rem',
-                                borderRadius: '5px'
-                            }} 
-                            value={number_rows}
-                        >
-                            <option value="20">
-                                20
-                            </option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                            <option value="1000">All</option>
-                        </select>
-                    </CCol>
-                </CRow>
-                <CRow className="table-container" style={{marginBottom: '2rem'}}>
-                    <CCol sm="12">
-                        <div id="myGrid" style={{height: '600px'}} className="ag-theme-material">
-                        <AgGridReact 
+                                    </CButton>
+                                </CCol>
+                            </CRow>
+                        </CCol>
+                    </CRow>
+                    <CRow className="table-container">
+                        <CCol>
+                            <select
+                                id="page-size"
+                                className="card-input"
+                                onChange={() => onPageSizeChanged()}
+                                style={{
+                                    background: 'white',
+                                    border: '0px',
+                                    color: '#768192',
+                                    marginLeft: '1rem',
+                                    padding: '.5rem',
+                                    borderRadius: '5px'
+                                }}
+                                value={number_rows}
+                            >
+                                <option value="20">
+                                    20
+                                </option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="1000">All</option>
+                            </select>
+                        </CCol>
+                    </CRow>
+                    <CRow className="table-container" style={{ marginBottom: '2rem' }}>
+                        <CCol sm="12">
+                            <div id="myGrid" style={{ height: '600px' }} className="ag-theme-material">
+                                <AgGridReact
 
-                            // turn on AG Grid React UI
-                            reactUi="true"
-                            className="ag-theme-material"
-                            animateRows="true"
-                            columnDefs={column_definitions.columnDefs}
-                            rowData={column_definitions.rowData}
-                            rowSelection="multiple"
-                            groupSelectsChildren="true"
-                            suppressRowClickSelection="true"
-                            onGridReady={onGridReady}
-                            frameworkComponents={{
-                                btnCellRenderer: ButtonCellRenderer,
-                                btnCellRendererDescargar: DescargarCellRenderer,
-                                idBtnCellRenderer: IdCellRenderer
-                            }}
-                            pagination={true}
-                            paginationPageSize={10}
-                            defaultColDef={column_definitions.defaultColDef}
-                            />
-                        </div>
-                    </CCol>
-                </CRow>
-        </div>
-        </> : <></>
+                                    // turn on AG Grid React UI
+                                    reactUi="true"
+                                    className="ag-theme-material"
+                                    animateRows="true"
+                                    columnDefs={column_definitions.columnDefs}
+                                    rowData={column_definitions.rowData}
+                                    rowSelection="multiple"
+                                    groupSelectsChildren="true"
+                                    suppressRowClickSelection="true"
+                                    onGridReady={onGridReady}
+                                    frameworkComponents={{
+                                        btnCellRenderer: ButtonCellRenderer,
+                                        btnCellRendererDescargar: DescargarCellRenderer,
+                                        idBtnCellRenderer: IdCellRenderer
+                                    }}
+                                    pagination={true}
+                                    paginationPageSize={10}
+                                    defaultColDef={column_definitions.defaultColDef}
+                                />
+                            </div>
+                        </CCol>
+                    </CRow>
+                </div>
+            </> : <></>
     )
 }
 

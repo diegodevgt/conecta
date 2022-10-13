@@ -23,6 +23,12 @@ import {
   } from '@coreui/react';
 import Planes from './Planes';
 import Plans from '../home/Plans';
+import axios from 'axios';
+import { reactLocalStorage } from 'reactjs-localstorage';
+import { useToasts } from 'react-toast-notifications';
+import {
+    useHistory
+} from "react-router-dom";
 
 function PlanesInfo(props) {
     const [images, setImages] = useState({
@@ -54,6 +60,43 @@ function PlanesInfo(props) {
         premium: false
     });
 
+    const history = useHistory();
+    const { addToast } = useToasts();
+
+    const solicitudCambioPlan = async (planId) => {
+        const user_object = reactLocalStorage.getObject('user');
+
+        let bearer = "";
+        if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
+            reactLocalStorage.remove('user');
+            history.push('/login');
+        } else {
+            bearer = `Bearer ${user_object.token}`;
+        }
+
+        await axios({
+            method: 'post',
+            url: `https://ws.conectaguate.com/api/v1/site/suscripcion/cambioplan/${planId}`,
+            headers: {
+                'Authorization': bearer,
+                'Content-Type': 'application/json'
+            }
+        }).then((response) => {
+            addToast(`Solicitud De Cambio de Plan Enviada`, {
+                appearance: 'success',
+                autoDismiss: true,
+                autoDismissTimeout: 4000
+            });
+        }, (error) => {
+            addToast(`Intente mas tarde`, {
+                appearance: 'error',
+                autoDismiss: true,
+                autoDismissTimeout: 4000
+            });
+        });
+
+    }
+
     const onChangePlan = (name) =>{
         let plans;
         switch(name){
@@ -64,6 +107,7 @@ function PlanesInfo(props) {
                     startup: false,
                     premium: false
                 }
+                solicitudCambioPlan(1);
                 break;
             case 'pro':
                 plans = {
@@ -72,6 +116,7 @@ function PlanesInfo(props) {
                     startup: false,
                     premium: false
                 }
+                solicitudCambioPlan(2);
                 break;
             case 'startup':
                 plans = {
@@ -80,6 +125,7 @@ function PlanesInfo(props) {
                     startup: true,
                     premium: false
                 }
+                solicitudCambioPlan(4);
                 break;
             case 'premium':
                 plans = {
@@ -88,6 +134,7 @@ function PlanesInfo(props) {
                     startup: false,
                     premium: true
                 }
+                solicitudCambioPlan(3);
                 break;
             default:
                 plans = {

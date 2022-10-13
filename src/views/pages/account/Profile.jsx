@@ -194,6 +194,11 @@ function Profile(props) {
         const user_object = reactLocalStorage.getObject('user');
         let bearer = "";
 
+        setProfile({
+            ...profile,
+            email: user_object.email
+        });
+
         if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
             reactLocalStorage.remove('user');
             history.push('/login');
@@ -247,8 +252,9 @@ function Profile(props) {
                 tipo_producto: data_usuario.tipo_producto,
                 departamentoId: data_usuario.departamentoId,
                 municipioid: data_usuario.municipioId,
-                logo: `https://ws.conectaguate.com/${data_usuario.img}`
+                logo: data_usuario.img !== null ? `https://ws.conectaguate.com/${data_usuario.img}` : null
             })
+            console.log(profile);
             searchMunicipios(data_usuario.departamentoId);
         });
     }, []);
@@ -539,7 +545,7 @@ function Profile(props) {
                     <CCol sm="8">
                         <CFormGroup>
                             <CLabel htmlFor="email">Correo Electronico</CLabel>
-                            <CInput id="email" onChange={handleChange} value={profile.email} placeholder="" required />
+                            <CInput id="email" onChange={handleChange} value={profile.email} placeholder="" readOnly required />
                         </CFormGroup>
                     </CCol>
                 </CRow>
@@ -745,7 +751,7 @@ function Profile(props) {
                         </CFormGroup>
                     </CCol>
                     <CCol sm="2">
-                        <img src={ imageProfile.img !== null ? imageProfile.img : profile.logo !== null ? profile.logo : 'https://icon-library.com/images/upload-picture-icon/upload-picture-icon-14.jpg' } style={{ width: '100px'}} alt="img"/>
+                        <img src={ imageProfile.img !== null ? imageProfile.img : profile.logo !== null && profile.logo !== "" ? profile.logo : 'https://icon-library.com/images/upload-picture-icon/upload-picture-icon-14.jpg' } style={{ width: '100px'}} alt="img"/>
                     </CCol>
                 </CRow>
                 <CRow>

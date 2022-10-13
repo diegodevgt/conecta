@@ -244,7 +244,7 @@ function TrackingInformation(props) {
         nombre_tienda: 'Tienda',
         telefono_destino: 'Telefono destino',
         tipo_pago: 'Pago',
-        municipio_destino: 'Destino'
+        tipoDestino: 'Destino'
        
     }
 

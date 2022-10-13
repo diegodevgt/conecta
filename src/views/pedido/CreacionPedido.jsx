@@ -40,7 +40,8 @@ const CreacionPedido = () => {
         direccion_destinatario: "",
         referencias_destinatario: "",
         pobladoDestino: 0,
-        pobladoOrigen: 0
+        pobladoOrigen: 0,
+        cupon: ""
     });
     const [poblado, setPoblado] = useState([]);
     const [pobladoOrigen, setPobladoOrigen] = useState([]);
@@ -72,6 +73,16 @@ const CreacionPedido = () => {
     const [value_departamento, setValueDepartamento] = useState("Guatemala");
     const [value_municipio, setValueMunicipio] = useState("Guatemala");
     const FileDownload = require('js-file-download');
+    const [fee_cod,set_fee_cod] = useState('');
+    const [cotizacionPedidoData,setCotizacionPedidoData] = useState({
+        cobroExtra: 0,
+        costoEnvio: 0,
+        cupon: 0,
+        pesoExtra: 0,
+        seguro: 0,
+        valorPaquetes: 0,
+        total: 0
+    });
     // Fetch de departamentos
 
     useEffect(() => {
@@ -126,7 +137,7 @@ const CreacionPedido = () => {
             "Panel": 2
         }
 
-        let tipo_pa;
+        let tipo_pa = 0;
         if (cobro.contra_entrega) {
             tipo_pa = 1;
         } else if (cobro.efectivo) {
@@ -149,13 +160,14 @@ const CreacionPedido = () => {
             municipio_destino: 0,
             transporte: parseInt(rows_data[0].transporte),
             tipo_envio: 1,  //
-            tipo_pago: tipo_pa, // 
+            tipo_pago: tipo_pa === 0 ? 4 : tipo_pa, // 
             COD: (cod_value !== 0) ? true : false,
             seguro: seguro_value,
             pobladoDestino: data.pobladoDestino,
             pobladoOrigen: data.pobladoOrigen,
             costo_envio: costo_de_envio, // return api cotizar
-            total: total_valor_declarado    // return api cotizar 
+            total: total_valor_declarado,
+            cupon: data.cupon    // return api cotizar 
         };
 
 
@@ -244,7 +256,7 @@ const CreacionPedido = () => {
     const cotizarOrder = async () => {
         const order = {};
 
-        let tipo_pa;
+        let tipo_pa = 0;
         if (cobro.contra_entrega) {
             tipo_pa = 1;
         } else if (cobro.efectivo) {
@@ -252,7 +264,7 @@ const CreacionPedido = () => {
         } else if (cobro.transferencia) {
             tipo_pa = 3
         }
-
+        
         order.pedido = {
             tipo_destino: 1,
             direccion_origen: data.direccion_remitente,
@@ -267,13 +279,14 @@ const CreacionPedido = () => {
             municipio_destino: 0,
             transporte: parseInt(rows_data[0].transporte),
             tipo_envio: 1,  //
-            tipo_pago: tipo_pa, // 
+            tipo_pago:  tipo_pa === 0 ? 4 : tipo_pa, // 
             COD: (cod_value !== 0) ? true : false,
             seguro: seguro_value,
             pobladoDestino: data.pobladoDestino,
             pobladoOrigen: data.pobladoOrigen,
             costo_envio: costo_de_envio, // return api cotizar
-            total: total_valor_declarado    // return api cotizar 
+            total: total_valor_declarado,   // return api cotizar 
+            cupon: data.cupon
         };
 
         let arr = [];
@@ -345,17 +358,6 @@ const CreacionPedido = () => {
                 history.push('/cuenta/perfil');
                 return false;
             };
-            setData({
-                ...data,
-                remitente: data_usuario.nombre + " " + data_usuario.apellido,
-                nombre_empresa_remitente: data_usuario.empresa,
-                telefono_remitente: data_usuario.phone,
-                correo_remitente: data_usuario.email,
-                municipio_remitente: data_usuario.municipio,
-                direccion_remitente: data_usuario.direccion_recoleccion,
-                municipioId_remitente: data_usuario.municipioId,
-                departamentoId_remitente: data_usuario.departamentoId
-            })
             axios({
                 method: 'get',
                 url: `https://ws.conectaguate.com/api/v1/site/poblado/dep/${response.data.usuario.departamentoId}/mun/${response.data.usuario.municipioId}`,
@@ -363,9 +365,21 @@ const CreacionPedido = () => {
                     'Authorization': bearer
                 }
             }).then((response) => {
-                let data = response.data["Data"];
-                setPobladoOrigen(data);
-                setPobladoOrigenDefault(data);
+                let dataPoblado = response.data["Data"];
+                setPobladoOrigen(dataPoblado);
+                setPobladoOrigenDefault(dataPoblado);
+                setData({
+                    ...data,
+                    remitente: data_usuario.nombre + " " + data_usuario.apellido,
+                    nombre_empresa_remitente: data_usuario.empresa,
+                    telefono_remitente: data_usuario.phone,
+                    correo_remitente: data_usuario.email,
+                    municipio_remitente: data_usuario.municipio,
+                    direccion_remitente: data_usuario.direccion_recoleccion,
+                    municipioId_remitente: data_usuario.municipioId,
+                    departamentoId_remitente: data_usuario.departamentoId,
+                    pobladoOrigen: dataPoblado[0].id
+                })
             }, (error) => {
                 return false;
             });
@@ -519,19 +533,31 @@ const CreacionPedido = () => {
         setData(data_copy);
     }
 
+    const actualizacionCupon = (cupon) =>{
+        const copyData = data;
+        copyData.cupon = cupon;
+        setData({
+            ...copyData
+        });
+    }
+
+    const eliminarCupon = async () =>{
+        await actualizacionCupon(null);
+        cotizarOrder();
+    }
+
     const nextStep = (step) => {
         let allow = true;
-        if (step === 1 && data.remitente !== 'testmode') {
+        if (step === 1) {
             let labels = {
                 remitente: "¿Quién envia?",
                 telefono_remitente: "Teléfono (Remitente)",
                 correo_remitente: "Correo Electronico (Remitente)",
-                municipio_remitente: "Municipio (Remitente)",
+                pobladoOrigen: "Poblado (Remitente)",
                 direccion_remitente: "Direccion (Remitente)",
-                destinatario: "Destinatario",
-                name_destinatario: "¿Quién recibe?",
+                destinatario: "¿Quién recibe?",
                 telefono_destinatario: "Teléfono (Destinatario)",
-                municipio_destinatario: "Municipio (Destinatario)",
+                pobladoDestino: "Poblado (Destinatario)",
                 direccion_destinatario: "Dirección (Destinatario)",
             };
 
@@ -557,10 +583,6 @@ const CreacionPedido = () => {
                     }
                 }
             }
-        }
-
-        if (data.remitente === 'testmode') {
-            allow = true;
         }
 
         return allow;
@@ -648,11 +670,6 @@ const CreacionPedido = () => {
         });
     }
 
-    // const [departamentos, setDepartamentos] = useState([]);
-    // const [municipios, setMunicipios] = useState([]);
-    // const [value_departamento, setValueDepartamento] = useState("");
-    // const [value_municipio, setValueMunicipio] = useState("");
-
 
     return (
         (user) ?
@@ -692,7 +709,14 @@ const CreacionPedido = () => {
                             setValorDeclarado={setTotalValorDeclarado}
                             setCod={setCodValue}
                             setCupon={setCuponValue}
+                            actualizarCupon={actualizacionCupon}
+                            eliminarCupon={eliminarCupon}
                             setSeguro={setSeguroValue}
+                            cobro={cobro}
+                            fee_cod={fee_cod}
+                            set_fee_cod={set_fee_cod}
+                            setCotizacionPedidoData={setCotizacionPedidoData}
+                            cotizacionPedidoData={cotizacionPedidoData}
                             setCobro={setCobro}
                             cotizar={cotizarOrder}
                             setCostoDeEnvio={setCostoDeEnvio}
@@ -700,10 +724,12 @@ const CreacionPedido = () => {
                             costo_de_envio={costo_de_envio}
                             setCostoDeEnvioTextCotiza={setCostoDeEnvioTextCotiza}
                             consto_de_envio_text_cotiza={consto_de_envio_text_cotiza}
+                            data={data}
                         />
                         : (step === 2) ?
                             <Step3
                                 changeStep={setStep}
+                                setData={setData}
                                 data={data}
                                 rows_data={rows_data}
                                 handleChange={handleChange}
@@ -969,6 +995,17 @@ const Step1 = (props) => {
                                                         return { value: item.id, label: item.poblado }
                                                     })
                                                 }
+                                                value={
+                                                    props.poblado.map( (item,index) => {
+                                                        if(index === 0 && props.data.pobladoDestino === 0){
+                                                            return { value: item.id, label: item.poblado }
+                                                        }
+                                                        if(props.data.pobladoDestino !== 0 && props.data.pobladoDestino === item.id){
+                                                            return { value: item.id, label: item.poblado }
+                                                        }
+
+                                                    })
+                                                }
                                             />
                                             {/* <Select  isSearchable={true} className="card-input" onChange={handleChange} value={props.poblado} custom name="poblado" id="poblado" placeholder={"Departamento/Municipio"}>
                                                 {props.poblado.map((elem)=>{
@@ -1152,7 +1189,7 @@ const Step2 = (props) => {
                 val = '';
                 inputValueSeguro = '';
             } else {
-                val = parseFloat(value * .02);
+                val = parseFloat(value);
                 inputValueSeguro = parseFloat(value);
             }
             props.setSeguro(val);
@@ -1173,34 +1210,6 @@ const Step2 = (props) => {
 
         if (id === 'cupon_input') {
             setInputValueCupon(value);
-            let value_cupon = value.trim();
-            if (value_cupon.length === 9) {
-                let isValid = await checkCoupon(value);
-                if (!isValid.valid) {
-                    addToast(`Cupon invalido`, {
-                        appearance: 'error',
-                        autoDismiss: true,
-                        autoDismissTimeout: 4000
-                    });
-                    setCuponValue({
-                        value: 0,
-                        tipo: '',
-                    });
-                    props.setCupon(isValid.value);
-                } else {
-                    addToast(`Cupon Aplicado Exitosamente`, {
-                        appearance: 'success',
-                        autoDismiss: true,
-                        autoDismissTimeout: 4000
-                    });
-                    let coupon = {
-                        ...isValid
-                    };
-
-                    setCuponValue(coupon);
-                    props.setCupon(coupon);
-                }
-            }
         }
     }
 
@@ -1219,61 +1228,6 @@ const Step2 = (props) => {
             }
         }
     }, [props.seguro])
-
-    const checkCoupon = async (cupon) => {
-        const user_object = reactLocalStorage.getObject('user');
-        let valid = false;
-        let val = 0;
-        if (cupon === 'TEST01') {
-            valid = true;
-            val = 10;
-        } else {
-            valid = false;
-            val = 0;
-        }
-
-        return await axios({
-            method: 'post',
-            url: 'https://ws.conectaguate.com/api/v1/site/cupones/validar',
-            headers: {
-                'Authorization': `Bearer ${user_object.token}`,
-                'Content-Type': 'application/json'
-            },
-            data: {
-                "codigo": cupon
-            }
-        }).then((result) => {
-            let data = result.data;
-            if (data["cupon"]) {
-                valid = true;
-                val = parseInt(data["cupon"].valor);
-            } else if (data["Mensaje"] === "No se encontro el código") {
-                valid = false;
-                val = 0;
-            } else if (data["Mensaje"] === "Codigo expirado") {
-                valid = false;
-                val = 0;
-            }
-
-            return {
-                valid: valid,
-                value: val,
-                tipo: data["cupon"].tipo
-            }
-
-        },
-            (error) => {
-                if (error.response) {
-                    valid = false;
-                    val = 0;
-                }
-                return {
-                    valid: valid,
-                    value: val
-                }
-            });
-
-    }
 
     const nextStep = () => {
         if (props.rows_data.length === 0) {
@@ -1311,15 +1265,37 @@ const Step2 = (props) => {
 
     const cotizarUpdate = async () => {
         let response = await props.cotizar();
+        console.log(response);
         if (response['Costo_envio']) {
             setCostoDeEnvio(response['Costo_envio'].toFixed(2));
             props.setCostoDeEnvio(response['Costo_envio'].toFixed(2));
         }
+        costoDeEnvio(response['Costo_envio']);
+        if(response['Data']){
+            props.setCotizacionPedidoData({
+                cobroExtra: response['Data']['cobroExtra'],
+                costoEnvio: response['Data']['costoEnvio'],
+                cupon: response['Data']['cupon'] || null,
+                pesoExtra: response['Data']['pesoExtra'],
+                seguro: response['Data']['seguro'],
+                valorPaquetes: response['Data']['valorPaquetes'],
+                total: response['Costo_envio']
+            });
+        }
     }
 
     useEffect(() => {
+        const cobro = props.cobro;
         let costo_init = 0;
-        if (props.cod !== 0 && props.cod !== '') {
+        let tipo_pa = 0;
+        if (cobro.contra_entrega) {
+            tipo_pa = 1;
+        } else if (cobro.efectivo) {
+            tipo_pa = 3
+        } else if (cobro.transferencia) {
+            tipo_pa = 2
+        }
+        if (tipo_pa === 1) {
             setCod('on');
             setInputValorCod((props.cod / .04));
         }
@@ -1333,30 +1309,8 @@ const Step2 = (props) => {
         }
 
 
-
+        //Ingreso valor cupon
         let text = '-';
-        if (props.cupon.value !== 0) {
-            switch (props.cupon.tipo) {
-                case 'porcentaje':
-                    if (costo_init !== 0.00) {
-                        text = 'Q ' + (costo_init * (props.cupon.value / 100)).toFixed(2).toString();
-                    }
-                    break;
-                case 'valorneto':
-                    if (costo_init !== 0.00) {
-                        text = 'Q ' + (- props.cupon.value).toString();
-                    }
-                    break;
-                case 'gratis':
-                    if (costo_init !== 0.00) {
-                        text = 'Q ' + (costo_init).toString();
-                    }
-                    break;
-                default:
-                    ;
-            }
-            setCuponValue(props.cupon);
-        }
         setCuponText(text);
 
 
@@ -1392,98 +1346,65 @@ const Step2 = (props) => {
 
     }, [])
 
-    useEffect(() => {
-        let text = '-';
-        if (cupon_value.value !== 0) {
-            switch (cupon_value.tipo) {
-                case 'porcentaje':
-                    if (costo_de_envio !== 0.00) {
-                        text = 'Q ' + (costo_de_envio * (cupon_value.value / 100)).toFixed(2).toString();
-                    }
-                    break;
-                case 'valorneto':
-                    if (costo_de_envio !== 0.00) {
-                        text = 'Q ' + (- cupon_value.value).toString();
-                    }
-                    break;
-                case 'gratis':
-                    if (costo_de_envio !== 0.00) {
-                        text = 'Q ' + (costo_de_envio).toString();
-                    }
-                    break;
-                default:
-                    ;
-            }
-        }
-
-        setCuponText(text);
-
-
-        let costo_text = '-';
-        if (cupon_value.value !== 0) {
-            switch (cupon_value.tipo) {
-                case 'porcentaje':
-                    if (costo_de_envio !== 0.00) {
-                        costo_text = 'Q ' + (costo_de_envio - (costo_de_envio * (cupon_value.value / 100))).toFixed(2).toString();
-                    }
-                    break;
-                case 'valorneto':
-                    if (costo_de_envio !== 0.00) {
-                        costo_text = 'Q ' + (costo_de_envio - cupon_value.value).toFixed(2).toString();
-                    }
-                    break;
-                case 'gratis':
-                    if (costo_de_envio !== 0.00) {
-                        costo_text = 'Q ' + (0.00).toFixed(2).toString();
-                    }
-                    break;
-                default:
-                    ;
-            }
-        }
+    const costoDeEnvio = (valor) =>{
+        const costo_text = 'Q ' + (valor).toString();
         setCostoDeEnvioText(costo_text);
         props.setCostoDeEnvioTextCotiza(costo_text);
-
-    }, [cupon_value])
+    }
 
     useEffect(() => {
-        let cupon = {
-            value: 0,
-            tipo: ''
-        };
-        if (props.cupon.value !== 0) {
-            cupon = props.cupon;
-        };
-        let costo_text = '-';
-        if (cupon.value !== 0) {
-            switch (cupon.tipo) {
-                case 'porcentaje':
-                    if (costo_de_envio > 0) {
-                        costo_text = 'Q ' + (costo_de_envio - (costo_de_envio * (cupon.value / 100))).toFixed(2).toString();
-                    }
-                    break;
-                case 'valorneto':
-                    if (costo_de_envio > 0) {
-                        costo_text = 'Q ' + (costo_de_envio - cupon.value).toFixed(2).toString();
-                    }
-                    break;
-                case 'gratis':
-                    if (costo_de_envio > 0) {
-                        costo_text = 'Q ' + (0.00).toFixed(2).toString();
-                    }
-                    break;
-                default:
-                    ;
-            }
-        } else {
-            costo_text = 'Q ' + (costo_de_envio).toString();
-        }
-
-        setCostoDeEnvioText(costo_text);
-        props.setCostoDeEnvioTextCotiza(costo_text);
-
+        costoDeEnvio(costo_de_envio);
     }, [costo_de_envio])
 
+    const checkCoupon = async () => {
+        const cupon = input_value_cupon;
+        const user_object = reactLocalStorage.getObject('user');
+        let valid = false;
+        let val = 0;
+
+        await axios({
+            method: 'post',
+            url: 'https://ws.conectaguate.com/api/v1/site/cupones/validar',
+            headers: {
+                'Authorization': `Bearer ${user_object.token}`,
+                'Content-Type': 'application/json'
+            },
+            data: {
+                "codigo": cupon
+            }
+        }).then((result) => {
+            addToast(`Cupon Aplicado Exitosamente`, {
+                appearance: 'success',
+                autoDismiss: true,
+                autoDismissTimeout: 4000
+            });
+
+            props.actualizarCupon(cupon);
+            setCuponText(cupon);
+            cotizarUpdate();
+        },
+        (error) => {
+            addToast(error.response.data.Mensaje, {
+                appearance: 'error',
+                autoDismiss: true,
+                autoDismissTimeout: 4000
+            });
+            if (error.response) {
+                valid = false;
+                val = 0;
+            }
+            return {
+                valid: valid,
+                value: val
+            }
+        });
+    }
+
+    const eliminarCodigoCupon = async () =>{
+        await props.eliminarCupon();
+        cotizarUpdate();
+        setInputValueCupon('');
+    }
 
     useEffect(() => {
         var rows = [];
@@ -1587,8 +1508,7 @@ const Step2 = (props) => {
                             </CCol>
                         </CRow>
                         <br />
-                        <CRow className="ml-2 mr-2" style={{ borderBottom: '2px solid #153b75' }}>
-
+                        <CRow style={{ borderBottom: '2px solid #153b75' }}>
                         </CRow>
                         <br />
                         <CRow>
@@ -1599,31 +1519,84 @@ const Step2 = (props) => {
                                 <CFormGroup>
                                     <CInput className="card-input showMore" onChange={handleChange} id="cupon_input" placeholder="añadir código" style={{ backgroundColor: '#F4F5F9' }} required />
                                 </CFormGroup>
+                                <CButton className="btn btn-primary"  onClick={checkCoupon}>Validar Cupón</CButton>
                             </CCol>
                             <CCol sm="7" className="card-values-conecta">
                                 <CRow>
-                                    <CCol sm="8">Total Valor Declarado</CCol>
+                                    <CCol sm="8">Total Valor Productos</CCol>
                                     <CCol sm="4">{
-                                        (input_value_cod === 0 || input_value_cod === '') ?
-                                            (total_valor_declarado === 0) ? '-' : `Q ${total_valor_declarado.toFixed(2)}`
-                                            : `Q ${input_value_cod.toFixed(2)}`
+                                        props.cotizacionPedidoData.valorPaquetes !== null && props.cotizacionPedidoData.valorPaquetes !== "" ?
+                                        `Q${Math.round(props.cotizacionPedidoData.valorPaquetes).toFixed(2)}`:
+                                        '-'
+                                    }</CCol>
+                                </CRow>
+                            
+                                <CRow style={{ borderBottom: '2px solid #153b75' }}>
+                                </CRow>
+
+                                <CRow className="card-values-conecta">
+                                    <CCol sm="8">Seguro Adicional</CCol>
+                                    <CCol sm="4">{
+                                        props.cotizacionPedidoData.seguro !== null && props.cotizacionPedidoData.seguro !== "" ?
+                                        `Q${Math.round(props.cotizacionPedidoData.seguro).toFixed(2)}`:
+                                        '-'
                                     }</CCol>
                                 </CRow>
                                 <CRow className="card-values-conecta">
-                                    <CCol sm="8">Seguro Adicional</CCol>
-                                    <CCol sm="4">{(props.seguro === 0 || props.seguro === '') ? '-' : `Q ${props.seguro.toFixed(2)}`}</CCol>
+                                    <CCol sm="8">Fee por COD</CCol>
+                                    <CCol sm="4">{
+                                        props.cotizacionPedidoData.cobroExtra !== null && props.cotizacionPedidoData.cobroExtra !== "" ?
+                                        `Q${Math.round(props.cotizacionPedidoData.cobroExtra).toFixed(2)}`:
+                                        '-'
+                                        }</CCol>
                                 </CRow>
                                 <CRow className="card-values-conecta">
-                                    <CCol sm="8">Aplica Cupon</CCol>
-                                    <CCol sm="4">{cupon_text}</CCol>
+                                    <CCol sm="8">Peso Extra</CCol>
+                                    <CCol sm="4">{
+                                        props.cotizacionPedidoData.pesoExtra !== null && props.cotizacionPedidoData.pesoExtra !== "" ?
+                                        `Q${Math.round(props.cotizacionPedidoData.pesoExtra).toFixed(2)}`:
+                                        '-'
+                                        }</CCol>
                                 </CRow>
                                 <CRow className="card-values-conecta">
                                     <CCol sm="8">Costo de envio</CCol>
-                                    <CCol sm="4">{costo_de_envio_text}</CCol>
+                                    <CCol sm="4">{
+                                        props.cotizacionPedidoData.costoEnvio !== null && props.cotizacionPedidoData.costoEnvio !== "" ?
+                                        `Q${Math.round(props.cotizacionPedidoData.costoEnvio).toFixed(2)}`:
+                                        '-'
+                                        }</CCol>
+                                </CRow>
+                                <CRow style={{ borderBottom: '2px solid #153b75' }}>
+                                </CRow>
+                                
+                                <CRow className="card-values-conecta">
+                                    <CCol sm="8">Descuento Cupon</CCol>
+                                    <CCol sm="4">{
+                                        props.cotizacionPedidoData.cupon !== null && props.cotizacionPedidoData.cupon !== "" ?
+                                        `Q${Math.round(props.cotizacionPedidoData.cupon).toFixed(2)}`:
+                                        '-'
+                                        }</CCol>
+                                </CRow>
+                                
+                                <CRow style={{ borderBottom: '2px solid #153b75' }}>
                                 </CRow>
                                 <CRow className="card-values-conecta">
-                                    <CCol sm="8">Fee por COD</CCol>
-                                    <CCol sm="4">{(props.cod === 0 || props.cod === '') ? '-' : `Q ${props.cod.toFixed(2)}`}</CCol>
+                                    <CCol sm="8">Total</CCol>
+                                    <CCol sm="4">{
+                                        
+                                        props.cotizacionPedidoData.total !== null && props.cotizacionPedidoData.total !== "" ?
+                                        `Q${Math.round(props.cotizacionPedidoData.total).toFixed(2)}`:
+                                        '-'
+                                        }</CCol>
+                                </CRow>
+                                <CRow className="card-values-conecta" style={{ display: (props.data.cupon !== null && props.data.cupon !== "") ? 'flex' : 'none' }}> 
+                                    <CCol sm="4">Cupon</CCol>
+                                    <CCol sm="6">{cupon_text}</CCol>
+                                    <CCol sm="1" style={{ display: (props.data.cupon !== null && props.data.cupon !== "") ? 'flex' : 'none' }}>
+                                        <CButton onClick={eliminarCodigoCupon} className="btn btn-primary">
+                                            x
+                                        </CButton>
+                                    </CCol>
                                 </CRow>
                             </CCol>
                         </CRow>
@@ -1931,7 +1904,7 @@ const Step3 = (props) => {
                             <CRow className="switch-container">
                                 <p className="text-pago">Efectivo al Recolectar</p>
                                 <label className="switch">
-                                    <input type="checkbox" onChange={handleChange} checked={props.cobro.efectivo} value={props.cobro.efectivo} id="efectivo-pago" />
+                                    <input type="checkbox" onChange={handleChange} checked={props.cobro.efectivo} value={props.cobro.efectivo} id="efectivo-pago" disabled={props.cobro.contra_entrega ? true : false} />
                                     <div className="slider round">
                                         <span className="on">Si</span>
                                         <span className="off">no</span>
@@ -1943,7 +1916,7 @@ const Step3 = (props) => {
                             <CRow className="switch-container">
                                 <p className="text-pago">Transferencia Bancaria</p>
                                 <label className="switch">
-                                    <input type="checkbox" onChange={handleChange} checked={props.cobro.transferencia} value={props.cobro.transferencia} id="transferencia-pago" />
+                                    <input type="checkbox" onChange={handleChange} checked={props.cobro.transferencia} value={props.cobro.transferencia} id="transferencia-pago" disabled={props.cobro.contra_entrega ? true : false}/>
                                     <div className="slider round">
                                         <span className="on">Si</span>
                                         <span className="off">no</span>
@@ -2103,28 +2076,28 @@ const Step4 = (props) => {
 
 
     useEffect(() => {
-        const user_object = reactLocalStorage.getObject('user');
-        if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
-            reactLocalStorage.remove('user');
-            history.push('/login');
-            return false;
-        }
-        axios({
-            method: 'post',
-            url: `https://ws.conectaguate.com/api/v1/site/pedido/img/add/${props.pedido_id}`,
-            headers: {
-                'Authorization': `Bearer ${user_object.token}`
-            },
-            data: props.files
-        }).then((response) => {
+        // const user_object = reactLocalStorage.getObject('user');
+        // if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
+        //     reactLocalStorage.remove('user');
+        //     history.push('/login');
+        //     return false;
+        // }
+        // axios({
+        //     method: 'post',
+        //     url: `https://ws.conectaguate.com/api/v1/site/pedido/img/add/${props.pedido_id}`,
+        //     headers: {
+        //         'Authorization': `Bearer ${user_object.token}`
+        //     },
+        //     data: props.files
+        // }).then((response) => {
             
-        }, (error) => {
-            addToast(`Intente mas tarde`, {
-                appearance: 'error',
-                autoDismiss: true,
-                autoDismissTimeout: 4000
-            });
-        });
+        // }, (error) => {
+        //     addToast(`Intente mas tarde`, {
+        //         appearance: 'error',
+        //         autoDismiss: true,
+        //         autoDismissTimeout: 4000
+        //     });
+        // });
     }, [])
 
 
