@@ -4,9 +4,11 @@ import {
     CCardBody, CCardHeader,
     CCol, CCollapse, CContainer, CFormGroup, CImg, CInput, CLabel, CRow, CSwitch
 } from '@coreui/react';
+import { faTruckMonster } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import 'core-js/es/array';
 import { useEffect, useRef, useState } from 'react';
+import { data } from 'react-dom-factories';
 import {
     useHistory
 } from "react-router-dom";
@@ -170,7 +172,6 @@ const CreacionPedido = () => {
             cupon: data.cupon    // return api cotizar 
         };
 
-
         let arr = [];
         rows_data.forEach((elem) => {
             arr.push({
@@ -212,6 +213,32 @@ const CreacionPedido = () => {
             data: order
         }).then((response) => {
             let data = response.data;
+           
+            //enviar voucher de pago
+            if(order.pedido.tipo_pago === 2){
+                var bodyFormData = new FormData();
+                bodyFormData.append('img', files); 
+                axios({
+                    method: "post",
+                    url: `https://ws.conectaguate.com/api/v1/site/pedido/img/add/${data["Data"].id}`,
+                    data: bodyFormData,
+                    headers: { "Content-Type": "multipart/form-data", 'Authorization': bearer,},
+                    })
+                .then(function (response) {
+                    addToast(`Se subio el voucher de pago correctamente.`, {
+                        appearance: 'success',
+                        autoDismiss: true,
+                        autoDismissTimeout: 4000
+                    });
+                })
+                .catch(function (response) {
+                    addToast(`No se pudo enviar el voucher, por favor enviarlo al correo: psoto@conectaguate.com con numero de pedido`, {
+                        appearance: 'warning',
+                        autoDismiss: true,
+                        autoDismissTimeout: 10000
+                    });
+                });   
+            }
             addToast(`Se guardo el pedido correctamente`, {
                 appearance: 'success',
                 autoDismiss: true,
@@ -542,6 +569,7 @@ const CreacionPedido = () => {
     }
 
     const eliminarCupon = async () =>{
+        handleChange({target: {id: 'cupon_input',value:''}});
         await actualizacionCupon(null);
         cotizarOrder();
     }
@@ -742,6 +770,7 @@ const CreacionPedido = () => {
                                 createOrder={createOrder}
                                 setFiles={setFiles}
                                 costo_de_envio={costo_de_envio}
+                                files={files}
                                 consto_de_envio_text_cotiza={consto_de_envio_text_cotiza}
                             /> :
                             <Step4
@@ -1146,9 +1175,8 @@ const Step2 = (props) => {
     const [input_value_cupon, setInputValueCupon] = useState('');
     const [costo_de_envio, setCostoDeEnvio] = useState(0.00);
     const [costo_de_envio_text, setCostoDeEnvioText] = useState('');
-
+    
     const [cupon_text, setCuponText] = useState('');
-
     const handleChange = async (e) => {
         const { id, value } = e.target;
         if (id === 'cod') {
@@ -1265,7 +1293,6 @@ const Step2 = (props) => {
 
     const cotizarUpdate = async () => {
         let response = await props.cotizar();
-        console.log(response);
         if (response['Costo_envio']) {
             setCostoDeEnvio(response['Costo_envio'].toFixed(2));
             props.setCostoDeEnvio(response['Costo_envio'].toFixed(2));
@@ -1273,13 +1300,13 @@ const Step2 = (props) => {
         costoDeEnvio(response['Costo_envio']);
         if(response['Data']){
             props.setCotizacionPedidoData({
-                cobroExtra: response['Data']['cobroExtra'],
-                costoEnvio: response['Data']['costoEnvio'],
+                cobroExtra: response['Data']['cobroExtra'] || null,
+                costoEnvio: response['Data']['costoEnvio'] || null,
                 cupon: response['Data']['cupon'] || null,
-                pesoExtra: response['Data']['pesoExtra'],
-                seguro: response['Data']['seguro'],
-                valorPaquetes: response['Data']['valorPaquetes'],
-                total: response['Costo_envio']
+                pesoExtra: response['Data']['pesoExtra'] || null,
+                seguro: response['Data']['seguro'] || null,
+                valorPaquetes: response['Data']['valorPaquetes'] || null,
+                total: response['Costo_envio'] || null
             });
         }
     }
@@ -1403,7 +1430,6 @@ const Step2 = (props) => {
     const eliminarCodigoCupon = async () =>{
         await props.eliminarCupon();
         cotizarUpdate();
-        setInputValueCupon('');
     }
 
     useEffect(() => {
@@ -1517,7 +1543,7 @@ const Step2 = (props) => {
                                     <h3>Tengo un cupón</h3>
                                 </div>
                                 <CFormGroup>
-                                    <CInput className="card-input showMore" onChange={handleChange} id="cupon_input" placeholder="añadir código" style={{ backgroundColor: '#F4F5F9' }} required />
+                                    <CInput className="card-input showMore" onChange={handleChange} value={input_value_cupon} id="cupon_input" placeholder="añadir código" style={{ backgroundColor: '#F4F5F9' }} />
                                 </CFormGroup>
                                 <CButton className="btn btn-primary"  onClick={checkCoupon}>Validar Cupón</CButton>
                             </CCol>
@@ -1542,7 +1568,7 @@ const Step2 = (props) => {
                                         '-'
                                     }</CCol>
                                 </CRow>
-                                <CRow className="card-values-conecta">
+                                <CRow className="card-values-conecta"  style={{ display: (props.cotizacionPedidoData.cobroExtra !== null && props.cotizacionPedidoData.cobroExtra !== "") ? 'flex' : 'none' }}>
                                     <CCol sm="8">Fee por COD</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.cobroExtra !== null && props.cotizacionPedidoData.cobroExtra !== "" ?
@@ -1695,25 +1721,27 @@ const Step3 = (props) => {
 
         switch (id) {
             case 'efectivo-pago':
+            
                 props.setCobro({
                     transferencia: false,
                     contra_entrega: false,
                     efectivo: bool_value
-                })
+                });
+            
                 break
             case 'transferencia-pago':
                 props.setCobro({
                     efectivo: false,
                     contra_entrega: false,
                     transferencia: bool_value
-                })
+                });
                 break
             case 'contra-entrega-pago':
-                props.setCobro({
-                    efectivo: false,
-                    transferencia: false,
-                    contra_entrega: bool_value
-                })
+                    props.setCobro({
+                        efectivo: false,
+                        transferencia: false,
+                        contra_entrega: bool_value
+                    });
                 break
             default: ;
         }
@@ -1984,7 +2012,7 @@ const Step3 = (props) => {
                                                 (inputFile.current.files[0] !== undefined) ?
                                                     inputFile.current.files[0].name : '' : '' : '' : ''}</CRow>
                                 </CCol>
-                                <input onChange={handleNewFileUpload} type='file' id='file' ref={inputFile} style={{ display: 'none' }} />
+                                <input onChange={handleNewFileUpload} type='file' id='file' ref={inputFile}  accept="image/png, image/jpeg, image/jpg" style={{ display: 'none' }} />
                                 <CCol sm="3" className="mb-3"></CCol>
                             </CRow>
                         </CCol>

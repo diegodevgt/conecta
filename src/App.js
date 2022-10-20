@@ -17,13 +17,13 @@ const TheLayout = React.lazy(() => import('./containers/TheLayout'));
 // Pages
 const Register = React.lazy(() => import('./views/pages/register/Register'));
 const Login = React.lazy(() => import('./views/pages/login/Login'));
+const ResetPassword = React.lazy(() => import('./views/pages/resetPassword/resetPassword'));
 const Home = React.lazy(() => import('./views/pages/home/Home'));
 const Tracking = React.lazy(() => import('./views/pages/tracking/Tracking'));
 const Mensajeria = React.lazy(() => import('./views/pages/mensajeria/Mensajeria'))
 const BolsaDeEmpleo = React.lazy(() => import('./views/pages/bolsa_empleo/BolsaDeEmpleo'))
 const Planes = React.lazy(() => import('./views/pages/planes/Planes'))
 const PlanCambio = React.lazy(() => import('./views/pages/planes/PlanCambio'))
-
 
 class App extends Component {
 
@@ -41,6 +41,7 @@ class App extends Component {
                 <Route exact path="/bolsa-de-empleo" name="Bolsa de Empleo" render={props => <BolsaDeEmpleo {...props}/>} />
                 <Route exact path="/login" name="Login" render={props => <Login {...props}/>} />
                 <Route exact path="/register" name="Register" render={props => <Register {...props}/>} />
+                <Route exact path="/resetPassword" name="ResetPassword" render={props => <ResetPassword {...props}/>} />
                 <Route exact path="/planes" name="Planes" render={props => <Planes {...props}/>} />
                 <Route exact path="/plan-cambio" name="Plan Cambio" render={props => <PlanCambio {...props}/>} />
                 <Route exact path="/tracking/:id" name="Tracking Page" render={props => <Tracking {...props}/>} />

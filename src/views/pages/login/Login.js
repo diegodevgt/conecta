@@ -187,7 +187,7 @@ const Login = () => {
                       </CInputGroup>
                       <CRow>
                         <CCol xs="12" className="text-left">
-                          <CButton color="link" >¿Olvidaste tu contraseña?</CButton>
+                          <CButton color="link" to="/resetPassword">¿Olvidaste tu contraseña?</CButton>
                         </CCol>
                       </CRow>
                       <CRow>
