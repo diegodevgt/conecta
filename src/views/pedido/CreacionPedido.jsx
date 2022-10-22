@@ -69,7 +69,10 @@ const CreacionPedido = () => {
     const [tipos_de_pago, setTiposDePago] = useState([]);
     const [estatus_de_pedido, setEstatusDePedido] = useState([]);
     const [tipos_de_transporte, setTiposDeTransporte] = useState([]);
-    const [files, setFiles] = useState({});
+    const [files, setFiles] = useState({
+        img: null,
+        file: null
+    });
     const [departamentos, setDepartamentos] = useState([]);
     const [municipios, setMunicipios] = useState([]);
     const [value_departamento, setValueDepartamento] = useState("Guatemala");
@@ -85,6 +88,7 @@ const CreacionPedido = () => {
         valorPaquetes: 0,
         total: 0
     });
+    const [cotizacionValida,setCotizacionValida] = useState(true);
     // Fetch de departamentos
 
     useEffect(() => {
@@ -143,9 +147,9 @@ const CreacionPedido = () => {
         if (cobro.contra_entrega) {
             tipo_pa = 1;
         } else if (cobro.efectivo) {
-            tipo_pa = 3
-        } else if (cobro.transferencia) {
             tipo_pa = 2
+        } else if (cobro.transferencia) {
+            tipo_pa = 3
         }
 
         order.pedido = {
@@ -164,6 +168,8 @@ const CreacionPedido = () => {
             tipo_envio: 1,  //
             tipo_pago: tipo_pa === 0 ? 4 : tipo_pa, // 
             COD: (cod_value !== 0) ? true : false,
+            valorCod: cod_value,
+            remitente: payment,
             seguro: seguro_value,
             pobladoDestino: data.pobladoDestino,
             pobladoOrigen: data.pobladoOrigen,
@@ -215,29 +221,53 @@ const CreacionPedido = () => {
             let data = response.data;
            
             //enviar voucher de pago
-            if(order.pedido.tipo_pago === 2){
+            if(order.pedido.tipo_pago === 3){
                 var bodyFormData = new FormData();
-                bodyFormData.append('img', files); 
+                bodyFormData.append( 
+                    "img", 
+                    files.file, 
+                    files.file.name 
+                ); 
                 axios({
                     method: "post",
                     url: `https://ws.conectaguate.com/api/v1/site/pedido/img/add/${data["Data"].id}`,
+                    headers: {
+                        'Authorization': `Bearer ${user_object.token}`,
+                        'Content-Type': 'multipart/form-data'
+                    },
                     data: bodyFormData,
-                    headers: { "Content-Type": "multipart/form-data", 'Authorization': bearer,},
-                    })
-                .then(function (response) {
-                    addToast(`Se subio el voucher de pago correctamente.`, {
-                        appearance: 'success',
-                        autoDismiss: true,
-                        autoDismissTimeout: 4000
-                    });
-                })
-                .catch(function (response) {
-                    addToast(`No se pudo enviar el voucher, por favor enviarlo al correo: psoto@conectaguate.com con numero de pedido`, {
-                        appearance: 'warning',
-                        autoDismiss: true,
-                        autoDismissTimeout: 10000
-                    });
-                });   
+                }).then(
+                    (result) => {
+                        console.log(result);
+                        addToast(`Se subio el voucher de pago correctamente.`, {
+                            appearance: 'success',
+                            autoDismiss: true,
+                            autoDismissTimeout: 4000
+                        });
+                    },
+                    (error) => {
+                        console.log(error);
+                        addToast(`No se pudo enviar el voucher, por favor enviarlo al correo: psoto@conectaguate.com con numero de pedido`, {
+                            appearance: 'warning',
+                            autoDismiss: true,
+                            autoDismissTimeout: 10000
+                        });
+                    }
+                );
+                // .then(function (response) {
+                //     addToast(`Se subio el voucher de pago correctamente.`, {
+                //         appearance: 'success',
+                //         autoDismiss: true,
+                //         autoDismissTimeout: 4000
+                //     });
+                // })
+                // .catch(function (response) {
+                //     addToast(`No se pudo enviar el voucher, por favor enviarlo al correo: psoto@conectaguate.com con numero de pedido`, {
+                //         appearance: 'warning',
+                //         autoDismiss: true,
+                //         autoDismissTimeout: 10000
+                //     });
+                // });   
             }
             addToast(`Se guardo el pedido correctamente`, {
                 appearance: 'success',
@@ -308,12 +338,14 @@ const CreacionPedido = () => {
             tipo_envio: 1,  //
             tipo_pago:  tipo_pa === 0 ? 4 : tipo_pa, // 
             COD: (cod_value !== 0) ? true : false,
+            valorCod: cod_value,
             seguro: seguro_value,
             pobladoDestino: data.pobladoDestino,
             pobladoOrigen: data.pobladoOrigen,
             costo_envio: costo_de_envio, // return api cotizar
             total: total_valor_declarado,   // return api cotizar 
-            cupon: data.cupon
+            cupon: data.cupon,
+            remitente: payment
         };
 
         let arr = [];
@@ -349,6 +381,10 @@ const CreacionPedido = () => {
         }).then((response) => {
             let data = response.data;
             return data;
+        }).catch(function (error) {
+            if (error.response) {
+              return error;
+            }
         });
     }
 
@@ -723,6 +759,8 @@ const CreacionPedido = () => {
                         setValueMunicipio={setValueMunicipio}
                         handleChangePobladoOrg={handleChangePobladoOrg}
                         handleChangePobladoDest={handleChangePobladoDest}
+                        cobro={cobro}
+                        setCobro={setCobro}
                     />
                     :
                     (step === 1) ?
@@ -753,6 +791,8 @@ const CreacionPedido = () => {
                             setCostoDeEnvioTextCotiza={setCostoDeEnvioTextCotiza}
                             consto_de_envio_text_cotiza={consto_de_envio_text_cotiza}
                             data={data}
+                            setCotizacionValida={setCotizacionValida}
+                            cotizacionValida={cotizacionValida}
                         />
                         : (step === 2) ?
                             <Step3
@@ -799,10 +839,20 @@ const Step1 = (props) => {
             if (payment) {
                 setPayment(false);
                 props.setPayment(false);
+                props.setCobro({
+                    efectivo: false,
+                    transferencia: false,
+                    contra_entrega: false
+                });
             } else {
                 setPayment(true);
                 props.setPayment(true);
-            }
+                props.setCobro({
+                    efectivo: true,
+                    transferencia: false,
+                    contra_entrega: false
+                });
+            } 
         }
     }
 
@@ -985,7 +1035,7 @@ const Step1 = (props) => {
                                     <CLabel htmlFor="text-input">Teléfono</CLabel><CLabel htmlFor="text-input" style={{ color: '#cdde0c' }}>*</CLabel>
                                 </CCol>
                                 <CCol xs="12" md="9">
-                                    <CInput value={props.data.telefono_destinatario} onChange={props.handleChange} className="card-input" id="telefono_destinatario" placeholder="" required />
+                                    <CInput value={props.data.telefono_destinatario} onChange={props.handleChange} className="card-input" id="telefono_destinatario" placeholder="" type='number' required />
                                 </CCol>
                             </CFormGroup>
                         </CCol>
@@ -1229,11 +1279,12 @@ const Step2 = (props) => {
                 val = '';
                 inputValueCod = '';
             } else {
-                val = parseFloat(value * 0.04)
+                val = value
                 inputValueCod = parseFloat(value);
             }
-            props.setCod(val);
+            props.setCod(inputValueCod);
             setInputValorCod(inputValueCod);
+            console.log(val);
         }
 
         if (id === 'cupon_input') {
@@ -1247,19 +1298,20 @@ const Step2 = (props) => {
                 cotizarUpdate();
             }
         }
-    }, [props.cod])
-
-    useEffect(() => {
-        if (props.rows_data) {
-            if (props.rows_data.length > 0) {
-                cotizarUpdate();
-            }
-        }
     }, [props.seguro])
 
     const nextStep = () => {
         if (props.rows_data.length === 0) {
             addToast(`Tiene que añadir un paquete para continuar`, {
+                appearance: 'error',
+                autoDismiss: true,
+                autoDismissTimeout: 4000
+            });
+            return false;
+        }
+        console.log(props.cotizacionValida);
+        if(!props.cotizacionValida){
+            addToast(`El COD tiene que tener otro valor`,{
                 appearance: 'error',
                 autoDismiss: true,
                 autoDismissTimeout: 4000
@@ -1293,6 +1345,22 @@ const Step2 = (props) => {
 
     const cotizarUpdate = async () => {
         let response = await props.cotizar();
+        if(response !== undefined && response !== null 
+            && response.response !== undefined 
+            && response.response !== null 
+            && response.response.status !== undefined 
+            && response.response.status !== null 
+            && response.response.status === 405){
+            
+            props.setCotizacionValida(false);
+            addToast(`Error: ${response.response.data.Message}`, {
+                appearance: 'error',
+                autoDismiss: true,
+                autoDismissTimeout: 4000
+            });
+        }else{
+            props.setCotizacionValida(true);
+        }
         if (response['Costo_envio']) {
             setCostoDeEnvio(response['Costo_envio'].toFixed(2));
             props.setCostoDeEnvio(response['Costo_envio'].toFixed(2));
@@ -1309,6 +1377,11 @@ const Step2 = (props) => {
                 total: response['Costo_envio'] || null
             });
         }
+        console.log(props.cotizacionValida);
+    }
+
+    const cotizacionFinalCod = async () => {
+        cotizarUpdate();
     }
 
     useEffect(() => {
@@ -1318,13 +1391,12 @@ const Step2 = (props) => {
         if (cobro.contra_entrega) {
             tipo_pa = 1;
         } else if (cobro.efectivo) {
-            tipo_pa = 3
-        } else if (cobro.transferencia) {
             tipo_pa = 2
+        } else if (cobro.transferencia) {
+            tipo_pa = 3
         }
         if (tipo_pa === 1) {
             setCod('on');
-            setInputValorCod((props.cod / .04));
         }
         if (props.seguro !== 0 && props.seguro !== '') {
             setSeguro('on');
@@ -1374,6 +1446,9 @@ const Step2 = (props) => {
     }, [])
 
     const costoDeEnvio = (valor) =>{
+        if(valor === undefined || valor === null){
+            return;
+        }
         const costo_text = 'Q ' + (valor).toString();
         setCostoDeEnvioText(costo_text);
         props.setCostoDeEnvioTextCotiza(costo_text);
@@ -1500,7 +1575,7 @@ const Step2 = (props) => {
                                 <CFormGroup style={{ display: (cod === 'off') ? 'none' : 'block' }}>
                                     <div className="input-box showMore">
                                         <strong style={{ fontSize: '1.5em !important' }}><span className="prefix">Q</span></strong>
-                                        <CInput value={input_value_cod} onChange={handleChange} className="card-input" type="number" id="cod_input" placeholder="monto" style={{ fontSize: '1.5em !important' }} required />
+                                        <CInput value={props.cod} onChange={handleChange} onBlur={cotizacionFinalCod} className="card-input" type="number" id="cod_input" placeholder="monto" style={{ fontSize: '1.5em !important' }} required />
                                     </div>
                                 </CFormGroup>
                                 <div className="card-body-step2">
@@ -1552,7 +1627,7 @@ const Step2 = (props) => {
                                     <CCol sm="8">Total Valor Productos</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.valorPaquetes !== null && props.cotizacionPedidoData.valorPaquetes !== "" ?
-                                        `Q${Math.round(props.cotizacionPedidoData.valorPaquetes).toFixed(2)}`:
+                                        `Q${(props.cotizacionPedidoData.valorPaquetes).toFixed(2)}`:
                                         '-'
                                     }</CCol>
                                 </CRow>
@@ -1564,7 +1639,7 @@ const Step2 = (props) => {
                                     <CCol sm="8">Seguro Adicional</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.seguro !== null && props.cotizacionPedidoData.seguro !== "" ?
-                                        `Q${Math.round(props.cotizacionPedidoData.seguro).toFixed(2)}`:
+                                        `Q${(props.cotizacionPedidoData.seguro).toFixed(2)}`:
                                         '-'
                                     }</CCol>
                                 </CRow>
@@ -1572,7 +1647,7 @@ const Step2 = (props) => {
                                     <CCol sm="8">Fee por COD</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.cobroExtra !== null && props.cotizacionPedidoData.cobroExtra !== "" ?
-                                        `Q${Math.round(props.cotizacionPedidoData.cobroExtra).toFixed(2)}`:
+                                        `Q${(props.cotizacionPedidoData.cobroExtra).toFixed(2)}`:
                                         '-'
                                         }</CCol>
                                 </CRow>
@@ -1580,7 +1655,7 @@ const Step2 = (props) => {
                                     <CCol sm="8">Peso Extra</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.pesoExtra !== null && props.cotizacionPedidoData.pesoExtra !== "" ?
-                                        `Q${Math.round(props.cotizacionPedidoData.pesoExtra).toFixed(2)}`:
+                                        `Q${(props.cotizacionPedidoData.pesoExtra).toFixed(2)}`:
                                         '-'
                                         }</CCol>
                                 </CRow>
@@ -1588,7 +1663,7 @@ const Step2 = (props) => {
                                     <CCol sm="8">Costo de envio</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.costoEnvio !== null && props.cotizacionPedidoData.costoEnvio !== "" ?
-                                        `Q${Math.round(props.cotizacionPedidoData.costoEnvio).toFixed(2)}`:
+                                        `Q${(props.cotizacionPedidoData.costoEnvio).toFixed(2)}`:
                                         '-'
                                         }</CCol>
                                 </CRow>
@@ -1599,7 +1674,7 @@ const Step2 = (props) => {
                                     <CCol sm="8">Descuento Cupon</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.cupon !== null && props.cotizacionPedidoData.cupon !== "" ?
-                                        `Q${Math.round(props.cotizacionPedidoData.cupon).toFixed(2)}`:
+                                        `Q${(props.cotizacionPedidoData.cupon).toFixed(2)}`:
                                         '-'
                                         }</CCol>
                                 </CRow>
@@ -1611,7 +1686,7 @@ const Step2 = (props) => {
                                     <CCol sm="4">{
                                         
                                         props.cotizacionPedidoData.total !== null && props.cotizacionPedidoData.total !== "" ?
-                                        `Q${Math.round(props.cotizacionPedidoData.total).toFixed(2)}`:
+                                        `Q${(props.cotizacionPedidoData.total).toFixed(2)}`:
                                         '-'
                                         }</CCol>
                                 </CRow>
@@ -1701,9 +1776,7 @@ const Step3 = (props) => {
     const handleNewFileUpload = (e) => {
         const { files: newFiles } = e.target;
         if (newFiles.length) {
-            var formData = new FormData();
-            formData.append("img", newFiles[0]);
-            props.setFiles(formData);
+            props.setFiles({img: URL.createObjectURL(e.target.files[0]),file: e.target.files[0]});
         }
     };
 
