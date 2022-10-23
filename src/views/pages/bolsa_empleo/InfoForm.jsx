@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import {
     CButton,
@@ -20,7 +20,7 @@ import {
     CLabel,
     CTextarea,
     CImg
-  } from '@coreui/react';
+} from '@coreui/react';
 import CIcon from '@coreui/icons-react';
 import { useToasts } from 'react-toast-notifications';
 
@@ -35,8 +35,8 @@ function InfoForm(props) {
         message: ''
     });
 
-    const handleChangeForm = (e) =>{
-        const {id, value} = e.target;
+    const handleChangeForm = (e) => {
+        const { id, value } = e.target;
         const form_object = JSON.parse(JSON.stringify(form));
         let new_form = {
             ...form_object,
@@ -56,39 +56,37 @@ function InfoForm(props) {
         };
 
         for (const [key, value] of Object.entries(form)) {
-            if(value.length === 0 && key !== 'message'){
-                addToast(`El campo ${labels[key]} es requerido`, { 
-                    appearance: 'error', 
-                    autoDismiss : true ,
-                    autoDismissTimeout : 4000
+            if (value.length === 0 && key !== 'message') {
+                addToast(`El campo ${labels[key]} es requerido`, {
+                    appearance: 'error',
+                    autoDismiss: true,
+                    autoDismissTimeout: 4000
                 });
                 error = true;
             }
-            if(key === "email"){
+            if (key === "email") {
                 const em = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                if(!em.test(String(value).toLowerCase())){
-                    addToast(`El Correo Electrónico no es valido`, { 
-                        appearance: 'error', 
-                        autoDismiss : true ,
-                        autoDismissTimeout : 4000
+                if (!em.test(String(value).toLowerCase())) {
+                    addToast(`El Correo Electrónico no es valido`, {
+                        appearance: 'error',
+                        autoDismiss: true,
+                        autoDismissTimeout: 4000
                     });
                     error = true;
                 }
             }
-            if(key === "phone"){
+            if (key === "phone") {
                 const te = /^[-\s\.]?[0-9]{4}[-\s\.]?[0-9]{4}$/im;
-                if(!te.test(String(value).toLowerCase())){
-                    addToast(`El Numero Telefonico no es valido`, { 
-                        appearance: 'error', 
-                        autoDismiss : true ,
-                        autoDismissTimeout : 4000
+                if (!te.test(String(value).toLowerCase())) {
+                    addToast(`El Numero Telefonico no es valido`, {
+                        appearance: 'error',
+                        autoDismiss: true,
+                        autoDismissTimeout: 4000
                     });
                     error = true;
                 }
             }
         }
-
-        console.log(error);
         return error;
     }
 
@@ -116,76 +114,76 @@ function InfoForm(props) {
                                 Vacantes disponibles
                             </h3>
                         </CRow>
-                        <br/>
+                        <br />
                         <CRow className="">
                             <h3 className="subtitle_left">
                                 Vacantes Ciudad Capital
                             </h3>
                         </CRow>
-                        <br/>
+                        <br />
                         <CRow className="">
                             <p className="d-inline-flex copy">
-                                Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
+                                Lorem Ipsum is simply dummy text of the printing and typesetting industry.
                                 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
-                                when an unknown printer took a galley of type and scrambled it to make a type 
-                                specimen book. 
+                                when an unknown printer took a galley of type and scrambled it to make a type
+                                specimen book.
                             </p>
                             <p className="d-inline-flex copy">
                                 Disponible hasta: <p className="until"> 01/11/2021 </p>
                             </p>
                         </CRow>
                         <CRow className="separator">	&nbsp; </CRow>
-                        <br/>
+                        <br />
                         <CRow className="">
                             <h3 className="subtitle_left">
                                 Mensajeria motorista
                             </h3>
                         </CRow>
-                        <br/>
+                        <br />
                         <CRow className="">
                             <p className="d-inline-flex copy">
-                                Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
+                                Lorem Ipsum is simply dummy text of the printing and typesetting industry.
                                 Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
-                                when an unknown printer took a galley of type and scrambled it to make a type 
-                                specimen book. 
+                                when an unknown printer took a galley of type and scrambled it to make a type
+                                specimen book.
                             </p>
                             <p className="d-inline-flex copy">
                                 Disponible hasta: <p className="until"> 15/10/2021 </p>
                             </p>
                         </CRow>
-                        <br/>
+                        <br />
                     </CCol>
                     <CCol sm="8">
                         <CCard className="form-card">
                             <CCardBody>
-                                <br/>
+                                <br />
                                 <CFormGroup>
-                                    <CInput value={form.name} id="name" type="text" onChange={handleChangeForm} placeholder="Nombre y Apellido" required/>
+                                    <CInput value={form.name} id="name" type="text" onChange={handleChangeForm} placeholder="Nombre y Apellido" required />
                                 </CFormGroup>
                                 <CFormGroup>
-                                    <CInput value={form.edad} id="edad" type="text" onChange={handleChangeForm} placeholder="Edad*" required/>
+                                    <CInput value={form.edad} id="edad" type="text" onChange={handleChangeForm} placeholder="Edad*" required />
                                 </CFormGroup>
                                 <CFormGroup>
-                                    <CInput value={form.email} id="email" type="email" onChange={handleChangeForm} placeholder="Correo electrónico" required/>
+                                    <CInput value={form.email} id="email" type="email" onChange={handleChangeForm} placeholder="Correo electrónico" required />
                                 </CFormGroup>
                                 <CFormGroup>
-                                    <CInput value={form.phone} id="phone" type="tel" onChange={handleChangeForm} placeholder="Teléfono: 0000-0000" pattern="[0-9]{4}-[0-9]{4}" required/>
+                                    <CInput value={form.phone} id="phone" type="tel" onChange={handleChangeForm} placeholder="Teléfono: 0000-0000" pattern="[0-9]{4}-[0-9]{4}" required />
                                 </CFormGroup>
                                 <CFormGroup>
-                                    <CInput value={form.plaza} id="plaza" type="text" onChange={handleChangeForm} placeholder="Plaza a la que aplicas*" required/>
+                                    <CInput value={form.plaza} id="plaza" type="text" onChange={handleChangeForm} placeholder="Plaza a la que aplicas*" required />
                                 </CFormGroup>
                                 <CFormGroup>
-                                    <CTextarea 
-                                        name="message" 
-                                        id="message" 
+                                    <CTextarea
+                                        name="message"
+                                        id="message"
                                         rows="4"
-                                        placeholder="¿Por qué te gustaría trabajar con nosotros?" 
+                                        placeholder="¿Por qué te gustaría trabajar con nosotros?"
                                         value={form.message}
                                         onChange={handleChangeForm}
                                     />
                                 </CFormGroup>
 
-                                <CFormGroup className="form-actions" style={{marginBottom: '0'}}>
+                                <CFormGroup className="form-actions" style={{ marginBottom: '0' }}>
                                     <CRow className="justify-content-md-center item-buttons">
                                         <CCol className="col-md-auto">
                                             <CButton className="button" type="submit" size="lg" color="secondary" onClick={onSubmit}>Conectar</CButton>
@@ -202,12 +200,12 @@ function InfoForm(props) {
     )
 }
 
-function ItemList(props){
-    return(
+function ItemList(props) {
+    return (
         <>
-            <CRow className="item_list" style={{marginLeft:'2rem'}}>
-                <CIcon 
-                    name="cil-check" 
+            <CRow className="item_list" style={{ marginLeft: '2rem' }}>
+                <CIcon
+                    name="cil-check"
                     style={{
                         marginRight: '1rem',
                         color: '#46b9ef'

@@ -5,7 +5,7 @@ import HeaderImage from './HeaderImage';
 import PublicHeader from '../global/PublicHeader';
 import PlanesInfo from './PlanesInfo';
 import Packs from './Packs';
-import { 
+import {
     useHistory,
 } from "react-router-dom";
 
@@ -13,10 +13,9 @@ import {
 function Planes(props) {
     const history = useHistory();
 
-    console.log(history.location.pathname);
     return (
         <>
-            {(!history.location.pathname.includes('planes-disponibles'))? <PublicHeader /> : null} 
+            {(!history.location.pathname.includes('planes-disponibles')) ? <PublicHeader /> : null}
             <HeaderImage />
             <PlanesInfo />
             <Packs />

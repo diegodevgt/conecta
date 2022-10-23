@@ -69,7 +69,7 @@ function MisEnvios(props) {
                 field: 'destinatario'
             },
             {
-                headerName: 'Localidad Org',
+                headerName: 'Origen',
                 field: 'localidad_org'
             },
             {
@@ -77,15 +77,15 @@ function MisEnvios(props) {
                 field: 'destino'
             },
             {
-                headerName: 'Localidad Dest',
+                headerName: 'Dirección',
                 field: 'localidad_dest'
             },
             {
-                headerName: 'Tipo de envio',
+                headerName: 'Tipo',
                 field: 'tipo_de_envio'
             },
             {
-                headerName: 'Creación',
+                headerName: 'Fecha',
                 field: 'fecha_creacion'
             },
             {
@@ -99,7 +99,7 @@ function MisEnvios(props) {
                 },
             },
             {
-                haederName: 'Guia',
+                headerName: 'Guia',
                 field: 'key',
                 cellRenderer: 'btnCellRendererDescargar',
                 cellRendererParams: {
@@ -109,7 +109,7 @@ function MisEnvios(props) {
                 },
             },
             {
-                haederName: '',
+                headerName: 'Tracking',
                 field: 'link',
                 cellRenderer: 'btnCellRenderer',
                 cellRendererParams: {
@@ -264,7 +264,6 @@ function MisEnvios(props) {
                 let data_arr = [];
                 let data = response.data['Data'];
                 let i = 1;
-                console.log(data);
                 data.forEach((elem) => {
                     if (elem.created_at) {
                         let date = new Date(elem.created_at);

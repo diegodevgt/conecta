@@ -78,8 +78,8 @@ const CreacionPedido = () => {
     const [value_departamento, setValueDepartamento] = useState("Guatemala");
     const [value_municipio, setValueMunicipio] = useState("Guatemala");
     const FileDownload = require('js-file-download');
-    const [fee_cod,set_fee_cod] = useState('');
-    const [cotizacionPedidoData,setCotizacionPedidoData] = useState({
+    const [fee_cod, set_fee_cod] = useState('');
+    const [cotizacionPedidoData, setCotizacionPedidoData] = useState({
         cobroExtra: 0,
         costoEnvio: 0,
         cupon: 0,
@@ -88,7 +88,7 @@ const CreacionPedido = () => {
         valorPaquetes: 0,
         total: 0
     });
-    const [cotizacionValida,setCotizacionValida] = useState(true);
+    const [cotizacionValida, setCotizacionValida] = useState(true);
     // Fetch de departamentos
 
     useEffect(() => {
@@ -160,7 +160,7 @@ const CreacionPedido = () => {
             departamento_origen: 0,
             municipio_origen: 0,
             direccion_destino: data.direccion_destinatario,
-            nombre_destino: data.name_destinatario,
+            nombre_destino: data.name_destinatario + "|" + data.destinatario,
             telefono_destino: data.telefono_destinatario,
             departamento_destino: 0,
             municipio_destino: 0,
@@ -183,7 +183,8 @@ const CreacionPedido = () => {
             arr.push({
                 id_transporte: parseInt(elem.transporte),
                 valor: parseInt(elem.precio),
-                fragil: (elem.fragil === 'off') ? false : true
+                fragil: (elem.fragil === 'off') ? false : true,
+                descripcion: elem.paquete
             });
         })
 
@@ -219,15 +220,15 @@ const CreacionPedido = () => {
             data: order
         }).then((response) => {
             let data = response.data;
-           
+
             //enviar voucher de pago
-            if(order.pedido.tipo_pago === 3){
+            if (order.pedido.tipo_pago === 3) {
                 var bodyFormData = new FormData();
-                bodyFormData.append( 
-                    "img", 
-                    files.file, 
-                    files.file.name 
-                ); 
+                bodyFormData.append(
+                    "img",
+                    files.file,
+                    files.file.name
+                );
                 axios({
                     method: "post",
                     url: `https://ws.conectaguate.com/api/v1/site/pedido/img/add/${data["Data"].id}`,
@@ -238,7 +239,6 @@ const CreacionPedido = () => {
                     data: bodyFormData,
                 }).then(
                     (result) => {
-                        console.log(result);
                         addToast(`Se subio el voucher de pago correctamente.`, {
                             appearance: 'success',
                             autoDismiss: true,
@@ -246,7 +246,6 @@ const CreacionPedido = () => {
                         });
                     },
                     (error) => {
-                        console.log(error);
                         addToast(`No se pudo enviar el voucher, por favor enviarlo al correo: psoto@conectaguate.com con numero de pedido`, {
                             appearance: 'warning',
                             autoDismiss: true,
@@ -321,7 +320,7 @@ const CreacionPedido = () => {
         } else if (cobro.transferencia) {
             tipo_pa = 3
         }
-        
+
         order.pedido = {
             tipo_destino: 1,
             direccion_origen: data.direccion_remitente,
@@ -336,8 +335,8 @@ const CreacionPedido = () => {
             municipio_destino: 0,
             transporte: parseInt(rows_data[0].transporte),
             tipo_envio: 1,  //
-            tipo_pago:  tipo_pa === 0 ? 4 : tipo_pa, // 
-            COD: (cod_value !== 0) ? true : false,
+            tipo_pago: tipo_pa === 0 ? 4 : tipo_pa, // 
+            COD: (cod_value === 0) ? false : true,
             valorCod: cod_value,
             seguro: seguro_value,
             pobladoDestino: data.pobladoDestino,
@@ -383,7 +382,85 @@ const CreacionPedido = () => {
             return data;
         }).catch(function (error) {
             if (error.response) {
-              return error;
+                return error;
+            }
+        });
+    }
+
+    const cotizarOrderSinCOD = async () => {
+        const order = {};
+
+        let tipo_pa = 0;
+        if (cobro.contra_entrega) {
+            tipo_pa = 1;
+        } else if (cobro.efectivo) {
+            tipo_pa = 2
+        } else if (cobro.transferencia) {
+            tipo_pa = 3
+        }
+
+        order.pedido = {
+            tipo_destino: 1,
+            direccion_origen: data.direccion_remitente,
+            nombre_origen: data.remitente,
+            telefono_origen: data.telefono_remitente,
+            departamento_origen: 0,
+            municipio_origen: 0,
+            direccion_destino: data.direccion_destinatario,
+            nombre_destino: data.name_destinatario,
+            telefono_destino: data.telefono_destinatario,
+            departamento_destino: 0,
+            municipio_destino: 0,
+            transporte: parseInt(rows_data[0].transporte),
+            tipo_envio: 1,  //
+            tipo_pago: tipo_pa === 0 ? 4 : tipo_pa, // 
+            COD: false,
+            valorCod: 0,
+            seguro: seguro_value,
+            pobladoDestino: data.pobladoDestino,
+            pobladoOrigen: data.pobladoOrigen,
+            costo_envio: costo_de_envio, // return api cotizar
+            total: total_valor_declarado,   // return api cotizar 
+            cupon: data.cupon,
+            remitente: payment
+        };
+
+        let arr = [];
+        rows_data.forEach((elem) => {
+            arr.push({
+                id_transporte: parseInt(elem.transporte),
+                valor: parseInt(elem.precio),
+                fragil: (elem.fragil === 'off') ? false : true,
+                peso: elem.peso
+            });
+        })
+
+        order.detalle = arr;
+        // return false;
+        const user_object = reactLocalStorage.getObject('user');
+
+        let bearer = "";
+        if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
+            reactLocalStorage.remove('user');
+            history.push('/login');
+        } else {
+            bearer = `Bearer ${user_object.token}`;
+        }
+
+        return await axios({
+            method: 'post',
+            url: 'https://ws.conectaguate.com/api/v1/site/pedido/cotizacion',
+            headers: {
+                'Authorization': bearer,
+                'Content-Type': 'application/json'
+            },
+            data: order
+        }).then((response) => {
+            let data = response.data;
+            return data;
+        }).catch(function (error) {
+            if (error.response) {
+                return error;
             }
         });
     }
@@ -509,7 +586,7 @@ const CreacionPedido = () => {
                         },
                         (error) => {
                             if (error.response) {
-                                
+
                             }
                         });
                 } catch (e) {
@@ -596,7 +673,7 @@ const CreacionPedido = () => {
         setData(data_copy);
     }
 
-    const actualizacionCupon = (cupon) =>{
+    const actualizacionCupon = (cupon) => {
         const copyData = data;
         copyData.cupon = cupon;
         setData({
@@ -604,8 +681,8 @@ const CreacionPedido = () => {
         });
     }
 
-    const eliminarCupon = async () =>{
-        handleChange({target: {id: 'cupon_input',value:''}});
+    const eliminarCupon = async () => {
+        handleChange({ target: { id: 'cupon_input', value: '' } });
         await actualizacionCupon(null);
         cotizarOrder();
     }
@@ -654,7 +731,7 @@ const CreacionPedido = () => {
 
     const buscarPobladoOrigen = (e) => {
         const { value } = e.target;
-        if(value.length <= 2){
+        if (value.length <= 2) {
             setPobladoOrigen(pobladoOrigenDefault);
             return;
         }
@@ -684,7 +761,7 @@ const CreacionPedido = () => {
 
     const buscarPoblado = (e) => {
         const { value } = e.target;
-        if(value.length <= 2){
+        if (value.length <= 2) {
             return;
         }
         const user_object = reactLocalStorage.getObject('user');
@@ -711,25 +788,25 @@ const CreacionPedido = () => {
         });
     }
 
-    const descargarGuia = (key) =>{
+    const descargarGuia = (key) => {
         const user_object = reactLocalStorage.getObject('user');
         let bearer = "";
 
-        if(user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0){
+        if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
             reactLocalStorage.remove('user');
             history.push('/login');
-        }else{  
-            bearer =  `Bearer ${user_object.token}`;
-        }   
-        
+        } else {
+            bearer = `Bearer ${user_object.token}`;
+        }
+
         axios({
             url: `https://ws.conectaguate.com/api/v1/site/pedido/guia/${key}`,
             method: 'GET',
             responseType: 'blob',
-            headers: { 
+            headers: {
                 "Authorization": bearer
             }
-        }).then((response)=>{
+        }).then((response) => {
             FileDownload(response.data, `${key}.pdf`);
         });
     }
@@ -793,6 +870,7 @@ const CreacionPedido = () => {
                             data={data}
                             setCotizacionValida={setCotizacionValida}
                             cotizacionValida={cotizacionValida}
+                            cotizarOrderSinCOD={cotizarOrderSinCOD}
                         />
                         : (step === 2) ?
                             <Step3
@@ -852,7 +930,7 @@ const Step1 = (props) => {
                     transferencia: false,
                     contra_entrega: false
                 });
-            } 
+            }
         }
     }
 
@@ -961,11 +1039,11 @@ const Step1 = (props) => {
                                                     })
                                                 }
                                                 value={
-                                                    props.pobladoOrig.map( (item,index) => {
-                                                        if(index === 0 && props.data.pobladoOrigen === 0){
+                                                    props.pobladoOrig.map((item, index) => {
+                                                        if (index === 0 && props.data.pobladoOrigen === 0) {
                                                             return { value: item.id, label: item.poblado }
                                                         }
-                                                        if(props.data.pobladoOrigen !== 0 && props.data.pobladoOrigen === item.id){
+                                                        if (props.data.pobladoOrigen !== 0 && props.data.pobladoOrigen === item.id) {
                                                             return { value: item.id, label: item.poblado }
                                                         }
 
@@ -1075,11 +1153,11 @@ const Step1 = (props) => {
                                                     })
                                                 }
                                                 value={
-                                                    props.poblado.map( (item,index) => {
-                                                        if(index === 0 && props.data.pobladoDestino === 0){
+                                                    props.poblado.map((item, index) => {
+                                                        if (index === 0 && props.data.pobladoDestino === 0) {
                                                             return { value: item.id, label: item.poblado }
                                                         }
-                                                        if(props.data.pobladoDestino !== 0 && props.data.pobladoDestino === item.id){
+                                                        if (props.data.pobladoDestino !== 0 && props.data.pobladoDestino === item.id) {
                                                             return { value: item.id, label: item.poblado }
                                                         }
 
@@ -1225,27 +1303,33 @@ const Step2 = (props) => {
     const [input_value_cupon, setInputValueCupon] = useState('');
     const [costo_de_envio, setCostoDeEnvio] = useState(0.00);
     const [costo_de_envio_text, setCostoDeEnvioText] = useState('');
-    
+
     const [cupon_text, setCuponText] = useState('');
+
     const handleChange = async (e) => {
         const { id, value } = e.target;
         if (id === 'cod') {
             if (cod === 'on') {
                 setCod('off');
                 props.setCod(0);
-                props.setCobro({
-                    efectivo: false,
-                    transferencia: false,
-                    contra_entrega: false
-                })
                 setInputValorCod(0.00);
+                if (!props.cobro.efectivo) {
+                    props.setCobro({
+                        efectivo: false,
+                        transferencia: false,
+                        contra_entrega: false
+                    });
+                }
+                cotizarUpdate(true);
             } else if (cod === 'off') {
                 setCod('on');
-                props.setCobro({
-                    efectivo: false,
-                    transferencia: false,
-                    contra_entrega: true
-                })
+                if (!props.cobro.efectivo) {
+                    props.setCobro({
+                        efectivo: false,
+                        transferencia: false,
+                        contra_entrega: true
+                    });
+                }
             }
         }
         if (id === 'seguro') {
@@ -1284,7 +1368,6 @@ const Step2 = (props) => {
             }
             props.setCod(inputValueCod);
             setInputValorCod(inputValueCod);
-            console.log(val);
         }
 
         if (id === 'cupon_input') {
@@ -1309,9 +1392,9 @@ const Step2 = (props) => {
             });
             return false;
         }
-        console.log(props.cotizacionValida);
-        if(!props.cotizacionValida){
-            addToast(`El COD tiene que tener otro valor`,{
+
+        if (!props.cotizacionValida) {
+            addToast(`El COD tiene que tener otro valor`, {
                 appearance: 'error',
                 autoDismiss: true,
                 autoDismissTimeout: 4000
@@ -1343,22 +1426,27 @@ const Step2 = (props) => {
         }
     }, [props.rows_data])
 
-    const cotizarUpdate = async () => {
-        let response = await props.cotizar();
-        if(response !== undefined && response !== null 
-            && response.response !== undefined 
-            && response.response !== null 
-            && response.response.status !== undefined 
-            && response.response.status !== null 
-            && response.response.status === 405){
-            
+    const cotizarUpdate = async (sincod) => {
+        if (sincod === undefined) {
+            sincod = false;
+        }
+
+        let response = sincod == true ? await props.cotizarOrderSinCOD() : await props.cotizar();
+
+        if (response !== undefined && response !== null
+            && response.response !== undefined
+            && response.response !== null
+            && response.response.status !== undefined
+            && response.response.status !== null
+            && response.response.status === 405) {
+
             props.setCotizacionValida(false);
             addToast(`Error: ${response.response.data.Message}`, {
                 appearance: 'error',
                 autoDismiss: true,
                 autoDismissTimeout: 4000
             });
-        }else{
+        } else {
             props.setCotizacionValida(true);
         }
         if (response['Costo_envio']) {
@@ -1366,7 +1454,7 @@ const Step2 = (props) => {
             props.setCostoDeEnvio(response['Costo_envio'].toFixed(2));
         }
         costoDeEnvio(response['Costo_envio']);
-        if(response['Data']){
+        if (response['Data']) {
             props.setCotizacionPedidoData({
                 cobroExtra: response['Data']['cobroExtra'] || null,
                 costoEnvio: response['Data']['costoEnvio'] || null,
@@ -1377,11 +1465,6 @@ const Step2 = (props) => {
                 total: response['Costo_envio'] || null
             });
         }
-        console.log(props.cotizacionValida);
-    }
-
-    const cotizacionFinalCod = async () => {
-        cotizarUpdate();
     }
 
     useEffect(() => {
@@ -1445,8 +1528,8 @@ const Step2 = (props) => {
 
     }, [])
 
-    const costoDeEnvio = (valor) =>{
-        if(valor === undefined || valor === null){
+    const costoDeEnvio = (valor) => {
+        if (valor === undefined || valor === null) {
             return;
         }
         const costo_text = 'Q ' + (valor).toString();
@@ -1485,24 +1568,24 @@ const Step2 = (props) => {
             setCuponText(cupon);
             cotizarUpdate();
         },
-        (error) => {
-            addToast(error.response.data.Mensaje, {
-                appearance: 'error',
-                autoDismiss: true,
-                autoDismissTimeout: 4000
+            (error) => {
+                addToast(error.response.data.Mensaje, {
+                    appearance: 'error',
+                    autoDismiss: true,
+                    autoDismissTimeout: 4000
+                });
+                if (error.response) {
+                    valid = false;
+                    val = 0;
+                }
+                return {
+                    valid: valid,
+                    value: val
+                }
             });
-            if (error.response) {
-                valid = false;
-                val = 0;
-            }
-            return {
-                valid: valid,
-                value: val
-            }
-        });
     }
 
-    const eliminarCodigoCupon = async () =>{
+    const eliminarCodigoCupon = async () => {
         await props.eliminarCupon();
         cotizarUpdate();
     }
@@ -1575,7 +1658,7 @@ const Step2 = (props) => {
                                 <CFormGroup style={{ display: (cod === 'off') ? 'none' : 'block' }}>
                                     <div className="input-box showMore">
                                         <strong style={{ fontSize: '1.5em !important' }}><span className="prefix">Q</span></strong>
-                                        <CInput value={props.cod} onChange={handleChange} onBlur={cotizacionFinalCod} className="card-input" type="number" id="cod_input" placeholder="monto" style={{ fontSize: '1.5em !important' }} required />
+                                        <CInput value={props.cod} onChange={handleChange} onBlur={cotizarUpdate} className="card-input" type="number" id="cod_input" placeholder="monto" style={{ fontSize: '1.5em !important' }} required />
                                     </div>
                                 </CFormGroup>
                                 <div className="card-body-step2">
@@ -1620,18 +1703,18 @@ const Step2 = (props) => {
                                 <CFormGroup>
                                     <CInput className="card-input showMore" onChange={handleChange} value={input_value_cupon} id="cupon_input" placeholder="añadir código" style={{ backgroundColor: '#F4F5F9' }} />
                                 </CFormGroup>
-                                <CButton className="btn btn-primary"  onClick={checkCoupon}>Validar Cupón</CButton>
+                                <CButton className="btn btn-primary" onClick={checkCoupon}>Validar Cupón</CButton>
                             </CCol>
                             <CCol sm="7" className="card-values-conecta">
                                 <CRow>
                                     <CCol sm="8">Total Valor Productos</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.valorPaquetes !== null && props.cotizacionPedidoData.valorPaquetes !== "" ?
-                                        `Q${(props.cotizacionPedidoData.valorPaquetes).toFixed(2)}`:
-                                        '-'
+                                            `Q${(props.cotizacionPedidoData.valorPaquetes).toFixed(2)}` :
+                                            '-'
                                     }</CCol>
                                 </CRow>
-                            
+
                                 <CRow style={{ borderBottom: '2px solid #153b75' }}>
                                 </CRow>
 
@@ -1639,58 +1722,58 @@ const Step2 = (props) => {
                                     <CCol sm="8">Seguro Adicional</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.seguro !== null && props.cotizacionPedidoData.seguro !== "" ?
-                                        `Q${(props.cotizacionPedidoData.seguro).toFixed(2)}`:
-                                        '-'
+                                            `Q${(props.cotizacionPedidoData.seguro).toFixed(2)}` :
+                                            '-'
                                     }</CCol>
                                 </CRow>
-                                <CRow className="card-values-conecta"  style={{ display: (props.cotizacionPedidoData.cobroExtra !== null && props.cotizacionPedidoData.cobroExtra !== "") ? 'flex' : 'none' }}>
+                                <CRow className="card-values-conecta" style={{ display: (props.cotizacionPedidoData.cobroExtra !== null && props.cotizacionPedidoData.cobroExtra !== "") ? 'flex' : 'none' }}>
                                     <CCol sm="8">Fee por COD</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.cobroExtra !== null && props.cotizacionPedidoData.cobroExtra !== "" ?
-                                        `Q${(props.cotizacionPedidoData.cobroExtra).toFixed(2)}`:
-                                        '-'
-                                        }</CCol>
+                                            `Q${(props.cotizacionPedidoData.cobroExtra).toFixed(2)}` :
+                                            '-'
+                                    }</CCol>
                                 </CRow>
                                 <CRow className="card-values-conecta">
                                     <CCol sm="8">Peso Extra</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.pesoExtra !== null && props.cotizacionPedidoData.pesoExtra !== "" ?
-                                        `Q${(props.cotizacionPedidoData.pesoExtra).toFixed(2)}`:
-                                        '-'
-                                        }</CCol>
+                                            `Q${(props.cotizacionPedidoData.pesoExtra).toFixed(2)}` :
+                                            '-'
+                                    }</CCol>
                                 </CRow>
                                 <CRow className="card-values-conecta">
                                     <CCol sm="8">Costo de envio</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.costoEnvio !== null && props.cotizacionPedidoData.costoEnvio !== "" ?
-                                        `Q${(props.cotizacionPedidoData.costoEnvio).toFixed(2)}`:
-                                        '-'
-                                        }</CCol>
+                                            `Q${(props.cotizacionPedidoData.costoEnvio).toFixed(2)}` :
+                                            '-'
+                                    }</CCol>
                                 </CRow>
                                 <CRow style={{ borderBottom: '2px solid #153b75' }}>
                                 </CRow>
-                                
+
                                 <CRow className="card-values-conecta">
                                     <CCol sm="8">Descuento Cupon</CCol>
                                     <CCol sm="4">{
                                         props.cotizacionPedidoData.cupon !== null && props.cotizacionPedidoData.cupon !== "" ?
-                                        `Q${(props.cotizacionPedidoData.cupon).toFixed(2)}`:
-                                        '-'
-                                        }</CCol>
+                                            `Q${(props.cotizacionPedidoData.cupon).toFixed(2)}` :
+                                            '-'
+                                    }</CCol>
                                 </CRow>
-                                
+
                                 <CRow style={{ borderBottom: '2px solid #153b75' }}>
                                 </CRow>
                                 <CRow className="card-values-conecta">
                                     <CCol sm="8">Total</CCol>
                                     <CCol sm="4">{
-                                        
+
                                         props.cotizacionPedidoData.total !== null && props.cotizacionPedidoData.total !== "" ?
-                                        `Q${(props.cotizacionPedidoData.total).toFixed(2)}`:
-                                        '-'
-                                        }</CCol>
+                                            `Q${(props.cotizacionPedidoData.total).toFixed(2)}` :
+                                            '-'
+                                    }</CCol>
                                 </CRow>
-                                <CRow className="card-values-conecta" style={{ display: (props.data.cupon !== null && props.data.cupon !== "") ? 'flex' : 'none' }}> 
+                                <CRow className="card-values-conecta" style={{ display: (props.data.cupon !== null && props.data.cupon !== "") ? 'flex' : 'none' }}>
                                     <CCol sm="4">Cupon</CCol>
                                     <CCol sm="6">{cupon_text}</CCol>
                                     <CCol sm="1" style={{ display: (props.data.cupon !== null && props.data.cupon !== "") ? 'flex' : 'none' }}>
@@ -1776,7 +1859,7 @@ const Step3 = (props) => {
     const handleNewFileUpload = (e) => {
         const { files: newFiles } = e.target;
         if (newFiles.length) {
-            props.setFiles({img: URL.createObjectURL(e.target.files[0]),file: e.target.files[0]});
+            props.setFiles({ img: URL.createObjectURL(e.target.files[0]), file: e.target.files[0] });
         }
     };
 
@@ -1794,13 +1877,13 @@ const Step3 = (props) => {
 
         switch (id) {
             case 'efectivo-pago':
-            
+
                 props.setCobro({
                     transferencia: false,
                     contra_entrega: false,
                     efectivo: bool_value
                 });
-            
+
                 break
             case 'transferencia-pago':
                 props.setCobro({
@@ -1810,11 +1893,11 @@ const Step3 = (props) => {
                 });
                 break
             case 'contra-entrega-pago':
-                    props.setCobro({
-                        efectivo: false,
-                        transferencia: false,
-                        contra_entrega: bool_value
-                    });
+                props.setCobro({
+                    efectivo: false,
+                    transferencia: false,
+                    contra_entrega: bool_value
+                });
                 break
             default: ;
         }
@@ -1869,7 +1952,7 @@ const Step3 = (props) => {
     }, [])
 
     useEffect(() => {
-        
+
     }, [inputFile])
 
 
@@ -2017,7 +2100,7 @@ const Step3 = (props) => {
                             <CRow className="switch-container">
                                 <p className="text-pago">Transferencia Bancaria</p>
                                 <label className="switch">
-                                    <input type="checkbox" onChange={handleChange} checked={props.cobro.transferencia} value={props.cobro.transferencia} id="transferencia-pago" disabled={props.cobro.contra_entrega ? true : false}/>
+                                    <input type="checkbox" onChange={handleChange} checked={props.cobro.transferencia} value={props.cobro.transferencia} id="transferencia-pago" disabled={props.cobro.contra_entrega ? true : false} />
                                     <div className="slider round">
                                         <span className="on">Si</span>
                                         <span className="off">no</span>
@@ -2085,7 +2168,7 @@ const Step3 = (props) => {
                                                 (inputFile.current.files[0] !== undefined) ?
                                                     inputFile.current.files[0].name : '' : '' : '' : ''}</CRow>
                                 </CCol>
-                                <input onChange={handleNewFileUpload} type='file' id='file' ref={inputFile}  accept="image/png, image/jpeg, image/jpg" style={{ display: 'none' }} />
+                                <input onChange={handleNewFileUpload} type='file' id='file' ref={inputFile} accept="image/png, image/jpeg, image/jpg" style={{ display: 'none' }} />
                                 <CCol sm="3" className="mb-3"></CCol>
                             </CRow>
                         </CCol>
@@ -2191,7 +2274,7 @@ const Step4 = (props) => {
         //     },
         //     data: props.files
         // }).then((response) => {
-            
+
         // }, (error) => {
         //     addToast(`Intente mas tarde`, {
         //         appearance: 'error',
@@ -2213,12 +2296,12 @@ const Step4 = (props) => {
                 </CRow>
                 <br />
                 <CRow className="subtitle-container">
-                    <CButton block color="primary" 
+                    <CButton block color="primary"
                         onClick={() => {
                             props.descargarGuia(props.pedido);
                         }}
                     >
-                        Descargar guía 
+                        Descargar guía
                     </CButton>
                 </CRow>
                 <br />

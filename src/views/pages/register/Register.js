@@ -37,7 +37,6 @@ const Register = () => {
 
   useEffect(() => {
     const user = reactLocalStorage.getObject('user');
-    console.log(user);
     if (Object.keys(user).length > 0) {
       if (user !== 'undefined' && user !== undefined && user !== null) {
         if (user.token.length > 0) {
@@ -48,7 +47,7 @@ const Register = () => {
   }, [])
 
   const responseGoogle = (response) => {
-    console.log(response);
+    //console.log(response);
   }
 
   const handleChange = (e) => {
@@ -58,7 +57,6 @@ const Register = () => {
       ...form_object,
       [id]: value
     };
-    console.log(new_data);
     setRegister(new_data);
   }
 
@@ -140,7 +138,6 @@ const Register = () => {
           data: object_login,
         }).then(
           (result) => {
-            console.log(result);
             addToast(`Registro Exitoso`, {
               appearance: 'success',
               autoDismiss: true,
@@ -164,9 +161,9 @@ const Register = () => {
           // instead of a catch() block so that we don't swallow
           // exceptions from actual bugs in components.
           (error) => {
-            if (error.response) {
-              console.log(error.response);
-            }
+
+            //console.log(error.response);
+
           }
         );
       },
@@ -186,11 +183,8 @@ const Register = () => {
                     autoDismissTimeout: 4000
                   });
               }
-              console.log(data);
             });
           }
-
-          console.log(error.response);
         }
       }
     );

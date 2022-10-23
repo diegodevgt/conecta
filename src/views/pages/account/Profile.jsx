@@ -24,14 +24,13 @@ function Profile(props) {
     });
     const inputFile = useRef(null)
 
-    const [imageProfile,setImageProfile] = useState({
+    const [imageProfile, setImageProfile] = useState({
         img: null,
         file: null
     });
 
     const handleChangeImage = e => {
-        console.log(e);
-        setImageProfile({img: URL.createObjectURL(e.target.files[0]),file: e.target.files[0]})
+        setImageProfile({ img: URL.createObjectURL(e.target.files[0]), file: e.target.files[0] })
     }
 
     const [profile, setProfile] = useState({
@@ -254,13 +253,12 @@ function Profile(props) {
                 municipioid: data_usuario.municipioId,
                 logo: data_usuario.img !== null ? `https://ws.conectaguate.com/${data_usuario.img}` : null
             })
-            console.log(profile);
             searchMunicipios(data_usuario.departamentoId);
         });
     }, []);
 
     useEffect(() => {
-        
+
     }, [profile])
 
     const addUserInfo = () => {
@@ -304,13 +302,13 @@ function Profile(props) {
             data: data_body
         }).then(
             (result) => {
-                if(imageProfile.file === null){
+                if (imageProfile.file === null) {
                     addToast(`Informacion guardada exitosamente`, {
                         appearance: 'success',
                         autoDismiss: true,
                         autoDismissTimeout: 4000
                     });
-                }else{
+                } else {
                     uploadFile();
                 }
             },
@@ -331,7 +329,7 @@ function Profile(props) {
         const config = {
             headers: { Authorization: `Bearer ${user_object.token}` }
         };
-        
+
         axios.get(
             `https://ws.conectaguate.com/api/v1/site/departamentos/${departamentoId}`,
             config,
@@ -366,9 +364,7 @@ function Profile(props) {
                     setDepartamentos(departamentos_response);
                 },
                 (error) => {
-                    if (error.response) {
-                        console.log(error)
-                    }
+                    //console.log(error);
                 });
         }
     }, []);
@@ -463,25 +459,22 @@ function Profile(props) {
         }
     }
 
-    const uploadFile = () => { 
+    const uploadFile = () => {
         const user_object = reactLocalStorage.getObject('user');
         const config = {
             headers: { Authorization: `Bearer ${user_object.token}`, 'Content-Type': 'multipart/form-data' }
         };
-        console.log(config);
         // Create an object of formData 
-        const formData = new FormData(); 
-        console.log(imageProfile.file);
+        const formData = new FormData();
         // Update the formData object 
-        formData.append( 
-          "img", 
-          imageProfile.file, 
-          imageProfile.file.name 
-        ); 
-       
+        formData.append(
+            "img",
+            imageProfile.file,
+            imageProfile.file.name
+        );
+
         // Details of the uploaded file 
-        console.log(imageProfile); 
-       
+
         // Request made to the backend api 
         // Send formData object 
         axios({
@@ -494,7 +487,6 @@ function Profile(props) {
             data: formData
         }).then(
             (result) => {
-                console.log(result);
                 addToast(`Informacion guardada exitosamente`, {
                     appearance: 'success',
                     autoDismiss: true,
@@ -502,14 +494,14 @@ function Profile(props) {
                 });
             },
             (error) => {
-                if (error.response) {
-                    console.log(error)
-                }
+
+                //console.log(error)
+
             }
         );
-         
-        
-    }; 
+
+
+    };
 
     return (
         <>
@@ -745,13 +737,13 @@ function Profile(props) {
                                     <input type='file' id='img' name='img' ref={inputFile} style={{ display: 'none' }} onChange={handleChangeImage} />
                                 </CCol>
                                 <CCol sm="7" className="mb-3 mb-xl-0">
-                                        El archivo no debe exceder de 2mb, jpg, png
+                                    El archivo no debe exceder de 2mb, jpg, png
                                 </CCol>
                             </CRow>
                         </CFormGroup>
                     </CCol>
                     <CCol sm="2">
-                        <img src={ imageProfile.img !== null ? imageProfile.img : profile.logo !== null && profile.logo !== "" ? profile.logo : 'https://icon-library.com/images/upload-picture-icon/upload-picture-icon-14.jpg' } style={{ width: '100px'}} alt="img"/>
+                        <img src={imageProfile.img !== null ? imageProfile.img : profile.logo !== null && profile.logo !== "" ? profile.logo : 'https://icon-library.com/images/upload-picture-icon/upload-picture-icon-14.jpg'} style={{ width: '100px' }} alt="img" />
                     </CCol>
                 </CRow>
                 <CRow>
@@ -773,7 +765,7 @@ function Profile(props) {
                                     placeholder={"Departamento/Municipio"}
                                     name="departamentoId"
                                     id="departamentoId"
-                                    onChange={(e) => {handleChange(e);searchMunicipios(e.target.value)}}
+                                    onChange={(e) => { handleChange(e); searchMunicipios(e.target.value) }}
                                     custom
                                     value={profile.departamentoId}
                                 >
