@@ -160,7 +160,7 @@ const CreacionPedido = () => {
             departamento_origen: 0,
             municipio_origen: 0,
             direccion_destino: data.direccion_destinatario,
-            nombre_destino: data.name_destinatario + "|" + data.destinatario,
+            nombre_destino: data.name_destinatario + ((data.name_destinatario !== null && data.name_destinatario !== undefined && data.name_destinatario !== "") ? "|" : "") + data.destinatario,
             telefono_destino: data.telefono_destinatario,
             departamento_destino: 0,
             municipio_destino: 0,
@@ -930,6 +930,7 @@ const Step1 = (props) => {
                     transferencia: false,
                     contra_entrega: false
                 });
+
             }
         }
     }
@@ -1320,7 +1321,6 @@ const Step2 = (props) => {
                         contra_entrega: false
                     });
                 }
-                cotizarUpdate(true);
             } else if (cod === 'off') {
                 setCod('on');
                 if (!props.cobro.efectivo) {
@@ -1480,6 +1480,10 @@ const Step2 = (props) => {
         }
         if (tipo_pa === 1) {
             setCod('on');
+            cotizarUpdate(false);
+        } else {
+            props.setCod(0);
+            cotizarUpdate(true);
         }
         if (props.seguro !== 0 && props.seguro !== '') {
             setSeguro('on');
