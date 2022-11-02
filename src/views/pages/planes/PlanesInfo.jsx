@@ -1,34 +1,16 @@
-import React, {useState} from 'react'
-import PropTypes from 'prop-types'
 import {
     CButton,
     CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CContainer,
-    CJumbotron,
-    CRow,
-    CEmbed,
-    CEmbedItem,
-    CInput,
-    CInputGroup,
-    CInputGroupText,
-    CInputGroupPrepend,
-    CInputGroupAppend,
-    CFormGroup,
-    CLabel,
-    CTextarea,
-    CImg
-  } from '@coreui/react';
-import Planes from './Planes';
-import Plans from '../home/Plans';
+    CCardBody, CCol,
+    CContainer, CImg, CRow
+} from '@coreui/react';
 import axios from 'axios';
-import { reactLocalStorage } from 'reactjs-localstorage';
-import { useToasts } from 'react-toast-notifications';
+import { useEffect, useState } from 'react';
 import {
     useHistory
 } from "react-router-dom";
+import { useToasts } from 'react-toast-notifications';
+import { reactLocalStorage } from 'reactjs-localstorage';
 
 function PlanesInfo(props) {
     const [images, setImages] = useState({
@@ -45,7 +27,7 @@ function PlanesInfo(props) {
         premium: 'Cliente frecuente con precios especiales, incluye 10 viajes en la ciudad capital o zonas aledañas, más activación de cross selling, más adición al marketplace conecta, más ecommerce, más 3 devoluciones'
     })
 
-    
+
     const [planPrice, setPlanrice] = useState({
         free: 'Q 0.00',
         pro: 'Q 149.00',
@@ -62,6 +44,49 @@ function PlanesInfo(props) {
 
     const history = useHistory();
     const { addToast } = useToasts();
+
+    useEffect(() => {
+        const user_object = reactLocalStorage.getObject('user');
+        if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
+            reactLocalStorage.remove('user');
+            history.push('/login');
+        } else {
+            switch (user_object.plan) {
+                case "Premium":
+                    setPlanSelected({
+                        free: false,
+                        pro: false,
+                        startup: false,
+                        premium: true
+                    });
+                    break;
+                case "Pro":
+                    setPlanSelected({
+                        free: false,
+                        pro: true,
+                        startup: false,
+                        premium: false
+                    });
+                    break;
+                case "Free":
+                    setPlanSelected({
+                        free: true,
+                        pro: false,
+                        startup: false,
+                        premium: false
+                    });
+                    break;
+                case "Startup":
+                    setPlanSelected({
+                        free: false,
+                        pro: false,
+                        startup: true,
+                        premium: false
+                    });
+                    break;
+            }
+        }
+    }, []);
 
     const solicitudCambioPlan = async (planId) => {
         const user_object = reactLocalStorage.getObject('user');
@@ -97,9 +122,9 @@ function PlanesInfo(props) {
 
     }
 
-    const onChangePlan = (name) =>{
+    const onChangePlan = (name) => {
         let plans;
-        switch(name){
+        switch (name) {
             case 'free':
                 plans = {
                     free: true,
@@ -144,58 +169,60 @@ function PlanesInfo(props) {
                     premium: false
                 }
         }
-
-        setPlanSelected(plans);
     }
 
     return (
-        <>  
-            <CContainer className="planes-info"> 
+        <>
+            <CContainer className="planes-info">
                 {/* <CRow className="planes-title">
                     <CCol>
                         Cambiar plan
                     </CCol>
                 </CRow> */}
-                <br/>
-                <CardPlan 
-                    img={images.free} 
+                <br />
+                <CardPlan
+                    img={images.free}
                     subtitle={"Free"}
-                    description={plan.free}    
+                    description={plan.free}
                     active={planSelected.free}
                     changePlan={onChangePlan}
                     plan={"free"}
                     price={planPrice.free}
+                    actual={planSelected}
                 />
-                <br/>
-                <CardPlan 
-                    img={images.pro} 
+                <br />
+                <CardPlan
+                    img={images.pro}
                     subtitle={"Pro"}
-                    description={plan.pro}    
+                    description={plan.pro}
                     active={planSelected.pro}
                     changePlan={onChangePlan}
                     plan={"pro"}
                     price={planPrice.pro}
+                    actual={planSelected}
                 />
-                <br/>
-                <CardPlan 
-                    img={images.startup} 
+                <br />
+                <CardPlan
+                    img={images.startup}
                     subtitle={"Startup"}
-                    description={plan.startup}    
+                    description={plan.startup}
                     active={planSelected.startup}
                     changePlan={onChangePlan}
                     plan={"startup"}
                     price={planPrice.startup}
+                    actual={planSelected}
                 />
-                <br/>
-                <CardPlan 
-                    img={images.premium} 
+                <br />
+                <CardPlan
+                    img={images.premium}
                     subtitle={"Premium"}
-                    description={plan.premium}    
+                    description={plan.premium}
                     active={planSelected.premium}
                     changePlan={onChangePlan}
                     plan={"premium"}
                     recommended={true}
                     price={planPrice.premium}
+                    actual={planSelected}
                 />
                 <br />
             </CContainer>
@@ -204,31 +231,31 @@ function PlanesInfo(props) {
 }
 
 
-function CardPlan(props){
-    return(
+function CardPlan(props) {
+    return (
         <>
-            <CRow className="recomendado-label" style={{display:(props.recommended)? 'block':'none'}}> Recomendado </CRow>
-            <CRow className="actual-plan" style={{display:(props.active)? 'block':'none'}}><CCol> Plan Actual</CCol> </CRow>
-            <CRow className={props.recommended ? "plan-card plan-card-recommended": "plan-card"}>
+            <CRow className="recomendado-label" style={{ display: (props.recommended) ? 'block' : 'none' }}> Recomendado </CRow>
+            <CRow className="actual-plan" style={{ display: (props.active) ? 'block' : 'none' }}><CCol> Plan Actual</CCol> </CRow>
+            <CRow className={props.recommended ? "plan-card plan-card-recommended" : "plan-card"}>
                 <CCol>
                     <CCard className="plan-inner-card">
                         <CCardBody>
                             <CRow className="align-items-center">
                                 <CCol sm="3">
                                     <CRow>
-                                        <CImg 
+                                        <CImg
                                             src={props.img}
                                             className="diamond-button"
                                             style={{
-                                                width:'200px', 
-                                                display:'block',
+                                                width: '200px',
+                                                display: 'block',
                                                 marginLeft: 'auto',
                                                 marginRight: 'auto'
                                             }}
                                         />
                                     </CRow>
                                     <CRow className="subtitle-icon">
-                                            {props.subtitle}
+                                        {props.subtitle}
                                     </CRow>
                                 </CCol>
                                 <CCol sm="9">
@@ -245,21 +272,22 @@ function CardPlan(props){
                                         <CCol sm="6">
                                             <CRow className="left">
                                                 <CCol>
-                                                    <span  className="price">
+                                                    <span className="price">
                                                         {props.price}
-                                                    </span><br/>
-                                                    <span  className="month">
-                                                    /mes
+                                                    </span><br />
+                                                    <span className="month">
+                                                        /mes
                                                     </span>
                                                 </CCol>
                                             </CRow>
                                         </CCol>
                                         <CCol sm="6">
-                                            <CRow style={{float:'right'}}>
+                                            <CRow style={{ float: 'right' }}>
                                                 <CButton
-                                                    className="button-plan"  
+                                                    className="button-plan"
                                                     color="secondary"
-                                                    onClick={()=>{
+                                                    style={{ display: (props.active) ? 'none' : 'block' }}
+                                                    onClick={() => {
                                                         props.changePlan(props.plan)
                                                     }}
                                                 >

@@ -1,5 +1,4 @@
-import React, { Fragment, useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import CIcon from '@coreui/icons-react';
 import {
   CButton,
   CCard,
@@ -14,15 +13,13 @@ import {
   CInputGroupPrepend,
   CInputGroupText,
   CRow
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
+} from '@coreui/react';
+import { useEffect, useState } from 'react';
 import { useHistory } from "react-router-dom";
+import { useToasts } from 'react-toast-notifications';
 import { reactLocalStorage } from 'reactjs-localstorage';
-import { ToastProvider, useToasts } from 'react-toast-notifications';
-import axios from 'axios';
 import { loginUser } from 'src/api/apiHandler';
-import { data } from 'react-dom-factories';
-import GoogleLogin from 'react-google-login';
+import axios from 'axios';
 
 const Login = () => {
   const { addToast } = useToasts();
@@ -100,6 +97,7 @@ const Login = () => {
     const dataApi = await loginUser(object_login);
 
     if (dataApi.valid && !login_success) {
+
       setLoginSuccess(true)
       let result = dataApi.response;
       addToast(`Login Exitoso`, {
@@ -107,18 +105,49 @@ const Login = () => {
         autoDismiss: true,
         autoDismissTimeout: 4000
       });
-      reactLocalStorage.setObject('user', {
-        'email': login.username,
-        'token': result.data.access_token,
-        'plan': 'pro'
+
+      const config = {
+        headers: {
+          "Authorization": `Bearer ${result.data.access_token}`
+        }
+      };
+
+      axios.get(
+        'https://ws.conectaguate.com/api/v1/site/planactual',
+        config
+      ).then(async (response) => {
+        reactLocalStorage.setObject('user', {
+          'email': login.username,
+          'token': result.data.access_token,
+          'plan': response.data.Plan
+        });
       });
+
+
 
       setLogin({
         username: "",
         password: ""
-      })
+      });
 
-      history.push('/creacion-pedido');
+
+
+      axios.get(
+        'https://ws.conectaguate.com/api/v1/site/verificado',
+        config
+      ).then(async (response) => {
+        console.log("response", response.data.verificacion);
+        if (response.data.verificacion === null) {
+          addToast(`Verificacion Necesaria`, {
+            appearance: 'warning',
+            autoDismiss: true,
+            autoDismissTimeout: 4000
+          });
+          history.push('/ConfirmacionUsuario');
+        } else {
+          history.push('/creacion-pedido')
+        }
+      });
 
     } else {
       let error = dataApi.response;

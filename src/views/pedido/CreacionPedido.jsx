@@ -4,11 +4,9 @@ import {
     CCardBody, CCardHeader,
     CCol, CCollapse, CContainer, CFormGroup, CImg, CInput, CLabel, CRow, CSwitch
 } from '@coreui/react';
-import { faTruckMonster } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import 'core-js/es/array';
 import { useEffect, useRef, useState } from 'react';
-import { data } from 'react-dom-factories';
 import {
     useHistory
 } from "react-router-dom";
@@ -16,7 +14,6 @@ import Select from 'react-select';
 import { useToasts } from 'react-toast-notifications';
 import { reactLocalStorage } from 'reactjs-localstorage';
 import { v4 as uuidv4 } from 'uuid';
-
 
 
 
@@ -91,7 +88,7 @@ const CreacionPedido = () => {
     const [cotizacionValida, setCotizacionValida] = useState(true);
     // Fetch de departamentos
 
-    useEffect(() => {
+    useEffect(async () => {
         const user_object = reactLocalStorage.getObject('user');
 
         if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
@@ -100,6 +97,28 @@ const CreacionPedido = () => {
             history.push('/login');
             return false;
         }
+
+        const config = {
+            headers: {
+                "Authorization": `Bearer ${user_object.token}`
+            }
+        };
+
+        axios.get(
+            'https://ws.conectaguate.com/api/v1/site/verificado',
+            config
+        ).then(async (response) => {
+            console.log("response", response.data.verificacion);
+            if (response.data.verificacion === null) {
+                addToast(`Verificacion Necesaria`, {
+                    appearance: 'warning',
+                    autoDismiss: true,
+                    autoDismissTimeout: 4000
+                });
+                history.push('/ConfirmacionUsuario');
+            }
+        });
+
         let base_url = 'https://ws.conectaguate.com/api'
 
         let transportes = new Promise((resolve, reject) => axios({ method: 'get', url: base_url + '/v1/site/transportes', headers: { 'Authorization': `Bearer ${user_object.token}` } }).then((data) => resolve({ key: 'transportes', data: data.data['Data'] }, 'transportes')));
@@ -149,7 +168,7 @@ const CreacionPedido = () => {
         } else if (cobro.efectivo) {
             tipo_pa = 2
         } else if (cobro.transferencia) {
-            tipo_pa = 3
+            tipo_pa = 4
         }
 
         order.pedido = {
@@ -175,7 +194,9 @@ const CreacionPedido = () => {
             pobladoOrigen: data.pobladoOrigen,
             costo_envio: costo_de_envio, // return api cotizar
             total: total_valor_declarado,
-            cupon: data.cupon    // return api cotizar 
+            cupon: data.cupon,
+            referencia_direccion: data.referencias_destinatario    // return api cotizar 
+
         };
 
         let arr = [];
@@ -318,7 +339,7 @@ const CreacionPedido = () => {
         } else if (cobro.efectivo) {
             tipo_pa = 2
         } else if (cobro.transferencia) {
-            tipo_pa = 3
+            tipo_pa = 4
         }
 
         order.pedido = {
@@ -396,7 +417,7 @@ const CreacionPedido = () => {
         } else if (cobro.efectivo) {
             tipo_pa = 2
         } else if (cobro.transferencia) {
-            tipo_pa = 3
+            tipo_pa = 4
         }
 
         order.pedido = {
@@ -1239,7 +1260,7 @@ const Step1 = (props) => {
                         <CRow>
                             <CCol sm="5">
                                 <div className="creacion-pedido-button-title">
-                                    <h4>¿Quién pagará el envío:</h4>
+                                    <h4>¿Quién pagará el envío?:</h4>
                                 </div>
 
                             </CCol>
@@ -1304,6 +1325,7 @@ const Step2 = (props) => {
     const [input_value_cupon, setInputValueCupon] = useState('');
     const [costo_de_envio, setCostoDeEnvio] = useState(0.00);
     const [costo_de_envio_text, setCostoDeEnvioText] = useState('');
+    const [cotizacionMensajeError, setCotizacionMensajeError] = useState('');
 
     const [cupon_text, setCuponText] = useState('');
 
@@ -1321,6 +1343,7 @@ const Step2 = (props) => {
                         contra_entrega: false
                     });
                 }
+                cotizarUpdate(true);
             } else if (cod === 'off') {
                 setCod('on');
                 if (!props.cobro.efectivo) {
@@ -1359,6 +1382,7 @@ const Step2 = (props) => {
         }
 
         if (id === 'cod_input') {
+            console.log("Valor COD", value);
             if (value === '' || value < 0) {
                 val = '';
                 inputValueCod = '';
@@ -1366,8 +1390,10 @@ const Step2 = (props) => {
                 val = value
                 inputValueCod = parseFloat(value);
             }
+
             props.setCod(inputValueCod);
-            setInputValorCod(inputValueCod);
+            setInputValorCod(parseFloat(value));
+            cotizarUpdate();
         }
 
         if (id === 'cupon_input') {
@@ -1383,9 +1409,16 @@ const Step2 = (props) => {
         }
     }, [props.seguro])
 
-    const nextStep = () => {
-        if (props.rows_data.length === 0) {
-            addToast(`Tiene que añadir un paquete para continuar`, {
+    useEffect(() => {
+        if (props.cod > 0) {
+            cotizarUpdate();
+        }
+    }, [props.cod])
+
+    const nextStep = async () => {
+
+        if (!props.cotizacionValida) {
+            addToast(cotizacionMensajeError, {
                 appearance: 'error',
                 autoDismiss: true,
                 autoDismissTimeout: 4000
@@ -1393,8 +1426,8 @@ const Step2 = (props) => {
             return false;
         }
 
-        if (!props.cotizacionValida) {
-            addToast(`El COD tiene que tener otro valor`, {
+        if (props.rows_data.length === 0) {
+            addToast(`Tiene que añadir un paquete para continuar`, {
                 appearance: 'error',
                 autoDismiss: true,
                 autoDismissTimeout: 4000
@@ -1441,19 +1474,23 @@ const Step2 = (props) => {
             && response.response.status === 405) {
 
             props.setCotizacionValida(false);
-            addToast(`Error: ${response.response.data.Message}`, {
-                appearance: 'error',
-                autoDismiss: true,
-                autoDismissTimeout: 4000
-            });
+            setCotizacionMensajeError(response.response.data.Message);
+            // addToast(`Error: ${response.response.data.Message}`, {
+            //     appearance: 'error',
+            //     autoDismiss: true,
+            //     autoDismissTimeout: 4000
+            // });
         } else {
             props.setCotizacionValida(true);
         }
+
         if (response['Costo_envio']) {
             setCostoDeEnvio(response['Costo_envio'].toFixed(2));
             props.setCostoDeEnvio(response['Costo_envio'].toFixed(2));
         }
+
         costoDeEnvio(response['Costo_envio']);
+
         if (response['Data']) {
             props.setCotizacionPedidoData({
                 cobroExtra: response['Data']['cobroExtra'] || null,
@@ -1471,24 +1508,28 @@ const Step2 = (props) => {
         const cobro = props.cobro;
         let costo_init = 0;
         let tipo_pa = 0;
+        if (props.cod > 0) {
+            setCod('on');
+            setInputValorCod(props.cod);
+        }
         if (cobro.contra_entrega) {
             tipo_pa = 1;
-        } else if (cobro.efectivo) {
-            tipo_pa = 2
-        } else if (cobro.transferencia) {
-            tipo_pa = 3
-        }
-        if (tipo_pa === 1) {
             setCod('on');
+            setInputValorCod(props.cod_value);
             cotizarUpdate(false);
-        } else {
-            props.setCod(0);
-            cotizarUpdate(true);
+        } else if (cobro.efectivo) {
+            tipo_pa = 2;
+            cotizarUpdate(false);
+        } else if (cobro.transferencia) {
+            tipo_pa = 4;
+            cotizarUpdate(false);
         }
+
         if (props.seguro !== 0 && props.seguro !== '') {
             setSeguro('on');
             setInputValueSeguro((props.seguro / .02).toFixed(2));
         }
+
         if (props.costo_de_envio !== 0 && props.costo_de_envio !== '') {
             setCostoDeEnvio(props.costo_de_envio);
             costo_init = props.costo_de_envio;
@@ -1529,6 +1570,7 @@ const Step2 = (props) => {
             setCostoDeEnvioText(costo_text);
         }
         props.setCostoDeEnvioTextCotiza(costo_text);
+        setInputValueSeguro(props.seguro);
 
     }, [])
 
@@ -1559,7 +1601,9 @@ const Step2 = (props) => {
                 'Content-Type': 'application/json'
             },
             data: {
-                "codigo": cupon
+                "codigo": cupon,
+                pobladoDestino: props.data.pobladoDestino,
+                pobladoOrigen: props.data.pobladoOrigen
             }
         }).then((result) => {
             addToast(`Cupon Aplicado Exitosamente`, {
@@ -2344,7 +2388,7 @@ const Step4 = (props) => {
                 <CRow className="button-again">
                     <CButton block style={{ backgroundColor: '#e9f114', color: '#153b75' }}
                         onClick={() => {
-                            props.changeStep(0);
+                            window.location.reload(false);
                         }}
                     >Realizar más envíos</CButton>
                 </CRow>

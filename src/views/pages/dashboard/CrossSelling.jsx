@@ -1,34 +1,22 @@
-import React, { lazy, Fragment, useState, useEffect, useRef } from 'react'
-import { isMobile } from 'react-device-detect';
 import {
-    CBadge,
-    CButton,
-    CButtonGroup,
-    CCard,
-    CCardBody,
-    CCardFooter,
-    CCardHeader,
-    CCol,
-    CProgress,
-    CRow,
-    CJumbotron,
-    CImg,
-    CInput,
-    CSelect,
-    CContainer
-} from '@coreui/react'
+    CButton, CCard,
+    CCardBody, CCardHeader,
+    CCol, CContainer, CImg,
+    CInput, CJumbotron, CRow
+} from '@coreui/react';
+import { useEffect, useRef, useState } from 'react';
 
 
-import { FileUploader } from "react-drag-drop-files";
-import VideoComponentCrossSelling from './VideoComponentCrossSelling';
 import CIcon from '@coreui/icons-react';
-import Modal from 'react-modal';
-import { Slide } from 'react-slideshow-image';
-import 'react-slideshow-image/dist/styles.css'
-import { reactLocalStorage } from 'reactjs-localstorage';
-import { useToasts } from 'react-toast-notifications';
-import { useHistory } from "react-router-dom";
 import axios from 'axios';
+import { FileUploader } from "react-drag-drop-files";
+import Modal from 'react-modal';
+import { useHistory } from "react-router-dom";
+import { Slide } from 'react-slideshow-image';
+import 'react-slideshow-image/dist/styles.css';
+import { useToasts } from 'react-toast-notifications';
+import { reactLocalStorage } from 'reactjs-localstorage';
+import VideoComponentCrossSelling from './VideoComponentCrossSelling';
 
 const customStyles = {
     content: {
@@ -55,7 +43,17 @@ function CrossSelling(props) {
     const [update_data, setUpdateData] = useState(0);
     const { addToast } = useToasts();
     const history = useHistory();
+    const [planActual, setPlanActual] = useState('Free');
 
+    useEffect(() => {
+        const user_object = reactLocalStorage.getObject('user');
+        if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
+            reactLocalStorage.remove('user');
+            history.push('/login');
+        } else {
+            setPlanActual(user_object.plan);
+        }
+    }, []);
 
     useEffect(() => {
         const user_object = reactLocalStorage.getObject('user');
@@ -303,7 +301,7 @@ function CrossSelling(props) {
                     </CRow>
                 </CContainer>
             </Modal>
-            <div className="cross-selling-container">
+            <div className="cross-selling-container" >
                 <CRow>
                     <CCol sm="12">
                         <CCard className="card-header-2">
@@ -325,7 +323,7 @@ function CrossSelling(props) {
                     </CCol>
                 </CRow>
                 <VideoComponentCrossSelling />
-                <CRow>
+                <CRow style={{ display: (planActual === 'Premium') ? 'none' : 'block' }}>
                     <CCol>
                         <CJumbotron className="border jumbotron-content">
                             <p className="lead">Empieza a disfrutar de los beneficios que ConectaGuate te
@@ -334,7 +332,7 @@ function CrossSelling(props) {
                                 <CCol >
                                     <CRow style={{ float: 'right' }}>
                                         <p className="lead plan">Cambiarme al plan</p>
-                                        <CButton className="button-premium" color="primary" size="lg">
+                                        <CButton className="button-premium" color="primary" size="lg" to="/planes-disponibles">
                                             <CImg
                                                 src={`img/icons/cross-selling/diamond.png`}
                                                 className="diamond-button"
@@ -347,7 +345,7 @@ function CrossSelling(props) {
                         </CJumbotron>
                     </CCol>
                 </CRow>
-                <CRow>
+                <CRow style={{ display: (planActual !== 'Premium') ? 'none' : 'block' }}>
                     {
 
                         <CContainer className="products-cross-selling mt-5 mb-5">
@@ -396,7 +394,7 @@ function CrossSelling(props) {
                     }
 
                 </CRow>
-                <CContainer>
+                <CContainer style={{ display: (planActual !== 'Premium') ? 'none' : 'block' }}>
                     <CRow className=" mb-4">
                         {/* <CCol lg="1"></CCol> */}
                         <CCol className="col-md-auto">
@@ -412,7 +410,7 @@ function CrossSelling(props) {
                 </CContainer>
                 {
                     (data_cross_selling.length > 0) ?
-                        <CRow >
+                        <CRow style={{ display: (planActual !== 'Premium') ? 'none' : 'block' }}>
                             <CCol style={{ height: '55vh' }}>
                                 <MultipleSlidesExample data={data_cross_selling} />
                             </CCol>

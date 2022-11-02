@@ -19,11 +19,12 @@ import ButtonCellRenderer from './cell_renderer/ButtonCellRenderer';
 import DescargarCellRenderer from './cell_renderer/DescargarCellRenderer';
 import IdCellRenderer from './cell_renderer/IdCellRenderer';
 import { element } from 'prop-types';
-
+import { useToasts } from 'react-toast-notifications';
 
 function MisEnvios(props) {
     const size = useWindowSize();
     const history = useHistory();
+    const { addToast } = useToasts();
     const [number_rows, setNumberRows] = useState("20");
     const [aggrid, setAggrid] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -173,10 +174,31 @@ function MisEnvios(props) {
 
         if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
             reactLocalStorage.remove('user');
-            setUser({});
             history.push('/login');
             return false;
         }
+
+        const config = {
+            headers: {
+                "Authorization": `Bearer ${user_object.token}`
+            }
+        };
+
+        axios.get(
+            'https://ws.conectaguate.com/api/v1/site/verificado',
+            config
+        ).then(async (response) => {
+            console.log("response", response.data.verificacion);
+            if (response.data.verificacion === null) {
+                addToast(`Verificacion Necesaria`, {
+                    appearance: 'warning',
+                    autoDismiss: true,
+                    autoDismissTimeout: 4000
+                });
+                history.push('/ConfirmacionUsuario');
+            }
+        });
+
         let base_url = 'https://ws.conectaguate.com/api'
 
         let transportes = new Promise((resolve, reject) => axios({ method: 'get', url: base_url + '/v1/site/transportes', headers: { 'Authorization': `Bearer ${user_object.token}` } }).then((data) => resolve({ key: 'transportes', data: data.data['Data'] }, 'transportes')));

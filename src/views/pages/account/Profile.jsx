@@ -44,7 +44,7 @@ function Profile(props) {
         fecha_nacimiento_year: "2017",
         nombre_tienda: "",
         nit: "",
-        tipo_producto: "",
+        tipo_producto: "Ropa y Accesorios",
         logo: "",
         direccion_de_recolecta: "",
         departamento: "",
@@ -53,7 +53,7 @@ function Profile(props) {
         municipioId: 0,
         nombre_de_cuenta: "",
         numero_de_cuenta: "",
-        tipo_de_cuenta: "",
+        tipo_de_cuenta: "Monetaria",
         nombre_banco: ""
     });
 
@@ -133,6 +133,36 @@ function Profile(props) {
     }
 
     useEffect(() => {
+        //Verificacion de usuario activo 
+        const user_object = reactLocalStorage.getObject('user');
+
+        if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
+            reactLocalStorage.remove('user');
+            history.push('/login');
+            return false;
+        }
+
+        const config = {
+            headers: {
+                "Authorization": `Bearer ${user_object.token}`
+            }
+        };
+
+        axios.get(
+            'https://ws.conectaguate.com/api/v1/site/verificado',
+            config
+        ).then(async (response) => {
+            console.log("response", response.data.verificacion);
+            if (response.data.verificacion === null) {
+                addToast(`Verificacion Necesaria`, {
+                    appearance: 'warning',
+                    autoDismiss: true,
+                    autoDismissTimeout: 4000
+                });
+                history.push('/ConfirmacionUsuario');
+            }
+        });
+
         let number_of_days = 0;
         let render = [];
         switch (profile.fecha_nacimiento_month) {
@@ -802,11 +832,12 @@ function Profile(props) {
                         </CRow>
                     </CCol>
                 </CRow>
+                <br />
                 <CRow>
                     <CCol sm="12">
                         <CFormGroup>
-                            <CLabel htmlFor="nombre_de_cuenta">Datos de cuenta de depósito por mis ventas</CLabel>
-                            <CInput onChange={handleChange} value={profile.nombre_de_cuenta} id="nombre_de_cuenta" placeholder="" required />
+                            <CLabel htmlFor="nombre_de_cuenta"><strong>Ingrese sus datos para liquidación de guías</strong></CLabel>
+                            <CInput onChange={handleChange} value={profile.nombre_de_cuenta} id="nombre_de_cuenta" placeholder="Nombre de cuenta" required />
                         </CFormGroup>
                     </CCol>
                 </CRow>
@@ -819,7 +850,7 @@ function Profile(props) {
                     <CCol sm="4">
                         <CFormGroup>
                             <CSelect onChange={handleChange} custom name="tipo_de_cuenta" value={profile.tipo_de_cuenta} id="tipo_de_cuenta">
-                                <option value="Monetaria">Monetaria</option>
+                                <option value="Monetaria" selected>Monetaria</option>
                                 <option value="Ahorro">Ahorro</option>
                             </CSelect>
                         </CFormGroup>
