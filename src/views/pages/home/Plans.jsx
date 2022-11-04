@@ -1,18 +1,10 @@
-import React from 'react'
-import { useHistory } from "react-router-dom";
 import {
-    CButton,
-    CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CContainer,
-    CJumbotron,
-    CRow,
-    CImg
-  } from '@coreui/react'
+    CButton, CCol,
+    CContainer, CImg, CRow
+} from '@coreui/react';
+import Radium, { StyleRoot } from 'radium';
 import { bounceInLeft, fadeInUp } from 'react-animations';
-import Radium, {StyleRoot} from 'radium';
+import { useHistory } from "react-router-dom";
 
 function Plans(props) {
     const history = useHistory();
@@ -25,25 +17,25 @@ function Plans(props) {
 
     const styles = {
         bounceInLeft: {
-          animation: 'x 1s',
-          animationName: Radium.keyframes(bounceInLeft, 'bounceInLeft')
+            animation: 'x 1s',
+            animationName: Radium.keyframes(bounceInLeft, 'bounceInLeft')
         },
-        fadeInUp:{
+        fadeInUp: {
             animation: 'x 1s',
             animationName: Radium.keyframes(fadeInUp, 'fadeInUp')
         }
-      }
-    
+    }
+
 
     return (
-        <>  
+        <>
             <StyleRoot>
                 <CContainer className="home-plans">
                     <CRow className="justify-content-md-center">
                         {/* <CCol lg="1"></CCol> */}
                         <CCol className="col-md-auto">
                             <h3 className="title" style={styles.bounceInLeft}>
-                                Conectamos emociones y tu <br/> negocio a toda Guatemala
+                                Conectamos emociones y tu <br /> negocio a toda Guatemala
                             </h3>
                         </CCol>
                         {/* <CCol lg="1"></CCol> */}
@@ -51,31 +43,29 @@ function Plans(props) {
                     <CRow className="home-items-plans">
                         <CCol sm="4">
                             <div style={styles.fadeInUp}>
-                                <ItemsPlans img_path={img1} title={title1} body={'item1'}/>
+                                <ItemsPlans img_path={img1} title={title1} body={'item1'} />
                             </div>
                         </CCol>
                         <CCol sm="4">
                             <div style={styles.fadeInUp}>
-                                <ItemsPlans img_path={img2} title={title2} body={'item2'}/>
+                                <ItemsPlans img_path={img2} title={title2} body={'item2'} />
                             </div>
                         </CCol>
                         <CCol sm="4">
                             <div style={styles.fadeInUp}>
-                                <ItemsPlans img_path={img3} title={title3} body={'item3'}/>
+                                <ItemsPlans img_path={img3} title={title3} body={'item3'} />
                             </div>
                         </CCol>
                     </CRow>
                     <CRow className="justify-content-md-center item-buttons">
                         {/* <CCol lg="1"></CCol> */}
                         <CCol className="col-md-auto">
-                            <CButton onClick={(e)=>{
-                                 e.preventdefault()
+                            <CButton onClick={() => {
                                 history.push('/planes');
                             }} className="button1" type="submit" size="lg" color="secondary">Adquiere tu plan</CButton>
                         </CCol>
                         <CCol className="col-md-auto">
-                            <CButton onClick={(e)=>{
-                                e.preventdefault()
+                            <CButton onClick={() => {
                                 history.push('/mensajeria-corporativa');
                             }} className="button2" type="submit" size="lg" color="secondary">Mensajeria Corporativa</CButton>
                         </CCol>
@@ -87,20 +77,20 @@ function Plans(props) {
     )
 }
 
-const ItemsPlans = (props) =>{
+const ItemsPlans = (props) => {
     let desc1 = (
-    <>
-        Nos integramos a cualquier <br/> tipo de negocio
-    </>);
+        <>
+            Nos integramos a cualquier <br /> tipo de negocio
+        </>);
     let desc2 = (
-    <>
-        Sistema de logística <br/> automatizado y seguro
-    </>);
+        <>
+            Sistema de logística <br /> automatizado y seguro
+        </>);
     let desc3 = (
-    <>
-        Con tus clientes y <br/> brindamos la mejor atención
-    </>);
-    
+        <>
+            Con tus clientes y <br /> brindamos la mejor atención
+        </>);
+
     const descs = {
         item1: desc1,
         item2: desc2,
@@ -111,11 +101,11 @@ const ItemsPlans = (props) =>{
         <>
             <CRow className="justify-content-md-center">
                 <CCol className="col-md-auto">
-                    <CImg 
+                    <CImg
                         src={props.img_path}
                         className="img-plans"
                     />
-                    <br/>
+                    <br />
                     <h3 className="title-plans">{props.title}</h3>
                     <h5 className="body-plans">{descs[props.body]}</h5>
                 </CCol>

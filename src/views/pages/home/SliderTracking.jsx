@@ -1,36 +1,21 @@
-import React, { useState, useEffect } from 'react'
-import PropTypes from 'prop-types'
 import {
     CButton,
     CCard,
-    CCardBody,
-    CCardHeader,
-    CCol,
-    CContainer,
-    CJumbotron,
-    CRow,
-    CEmbed,
-    CEmbedItem,
-    CInput,
-    CInputGroup,
-    CInputGroupText,
-    CInputGroupPrepend,
-    CInputGroupAppend,
-    CFormGroup,
-    CLabel,
-    CTextarea
+    CCardBody, CCol,
+    CContainer, CFormGroup, CInput,
+    CInputGroup, CInputGroupAppend, CInputGroupText, CJumbotron,
+    CRow, CTextarea
 } from '@coreui/react'
-import { DocsLink } from 'src/reusable'
-import CIcon from '@coreui/icons-react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch } from '@fortawesome/free-solid-svg-icons'
-import { ToastProvider, useToasts } from 'react-toast-notifications';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import axios from 'axios'
-import { useHistory } from "react-router-dom";
-import { bounceInLeft } from 'react-animations';
-import Radium, { StyleRoot } from 'radium';
-
+import Radium, { StyleRoot } from 'radium'
+import { useEffect, useState } from 'react'
+import { bounceInLeft } from 'react-animations'
+import { useHistory } from "react-router-dom"
+import { useToasts } from 'react-toast-notifications'
 function SliderTracking(props) {
+
     const [form, setForm] = useState({
         name: "",
         email: "",

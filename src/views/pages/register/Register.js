@@ -60,6 +60,50 @@ const Register = () => {
     setRegister(new_data);
   }
 
+  const reenviarCodigo = () => {
+
+    const user_object = reactLocalStorage.getObject('user');
+
+    let bearer = "";
+
+    if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
+      reactLocalStorage.remove('user');
+      history.push('/login');
+    } else {
+      bearer = `Bearer ${user_object.token}`;
+    }
+
+    axios({
+      method: 'post',
+      url: 'https://ws.conectaguate.com/api/v1/site/confirmacion/usuario',
+      headers: {
+        'Authorization': bearer,
+        'Content-Type': 'application/json'
+      }
+    }).then(
+      (result) => {
+
+        addToast(`${result.data.Message}`, {
+          appearance: 'success',
+          autoDismiss: true,
+          autoDismissTimeout: 4000
+        });
+
+      },
+      (error) => {
+
+        addToast(`${error.data.Message}`,
+          {
+            appearance: 'error',
+            autoDismiss: true,
+            autoDismissTimeout: 4000
+          });
+      }
+    );
+
+
+  }
+
   const onSubmit = () => {
     let error = false;
     let labels = {
@@ -154,8 +198,8 @@ const Register = () => {
               username: "",
               password: ""
             })
-
-            history.push('/cuenta/perfil');
+            reenviarCodigo();
+            history.push('/ConfirmacionUsuario');
           },
           // Note: it's important to handle errors here
           // instead of a catch() block so that we don't swallow

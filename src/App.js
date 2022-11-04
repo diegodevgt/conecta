@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import { HashRouter, Route, Switch, Redirect } from 'react-router-dom';
-import { ToastProvider, useToasts } from 'react-toast-notifications';
+import { HashRouter, Redirect, Route, Switch } from 'react-router-dom';
+import { ToastProvider } from 'react-toast-notifications';
+import './index.css';
 import './scss/style.scss';
-import './index.css'
 
 
 const loading = (
