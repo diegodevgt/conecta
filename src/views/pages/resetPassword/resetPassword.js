@@ -90,8 +90,7 @@ const Register = () => {
         }, 4000);
       },
       (error) => {
-
-        addToast('No se pudo enviar el correo de recuperación.',
+        addToast(error.response.data.Message || 'No se pudo enviar el correo',
           {
             appearance: 'error',
             autoDismiss: true,
@@ -143,7 +142,9 @@ const Register = () => {
                           Al continuar aceptas nuestros
                         </CCol>
                         <CCol xs="12" className="text-center">
-                          <CButton className="left-button" color="link">Terminos y Condiciones</CButton>y<CButton className="right-button" color="link" >Politicas de privacidad</CButton>
+                          <CButton className="left-button" color="link" onClick={() => {
+                            window.open('https://conectaguate.com/legales/terminso_condiciones_conecta22.pdf', '_blank').focus();
+                          }}>Terminos y Condiciones</CButton>
                         </CCol>
                       </CRow>
                     </CForm>

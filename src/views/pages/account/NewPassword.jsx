@@ -1,13 +1,9 @@
-import React, { lazy, Fragment, useState, useEffect, useRef } from 'react'
-import axios from 'axios'
 import {
     CButton,
-    CCol,
-    CRow,
-    CFormGroup,
-    CLabel,
-    CInput,
-} from '@coreui/react'
+    CCol, CFormGroup, CInput, CLabel, CRow
+} from '@coreui/react';
+import axios from 'axios';
+import { useState } from 'react';
 import { useToasts } from 'react-toast-notifications';
 import { reactLocalStorage } from 'reactjs-localstorage';
 

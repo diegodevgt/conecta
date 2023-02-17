@@ -16,7 +16,7 @@ function PublicFooter(props) {
                         <CRow>
                             <CCol lg="4">
                                 <LinkFooter name="FAQs" type="link" link="/faqs" />
-                                <LinkFooter name="Cobertura" type="link" link="/cobertura" />
+                                <LinkFooter name="Termino y condiciones" type="link" external={true} link="https://conectaguate.com/legales/terminso_condiciones_conecta22.pdf" />
                                 <LinkFooter name="Nosotros" type="link" link="/nosotros" />
                             </CCol>
                             <CCol lg="4">
@@ -50,9 +50,9 @@ function PublicFooter(props) {
                                 />
                                 <CImg
                                     className="social-icons"
-                                    src="/img/icons/whatsapp.png"
+                                    src="/img/icons/whatsapp.svg"
                                     onClick={() => {
-                                        window.open('https://api.whatsapp.com/send/?phone=50254010804&text=%C2%A1Quiero%20conectarme!%20%C2%BFMe%20podr%C3%ADan%20dar%20mas%20informaci%C3%B3n?', '_blank').focus();
+                                        window.open('https://api.whatsapp.com/send/?phone=50244793488&text=%C2%A1Quiero%20conectarme!%20%C2%BFMe%20podr%C3%ADan%20dar%20mas%20informaci%C3%B3n?', '_blank').focus();
                                     }}
                                 />
 

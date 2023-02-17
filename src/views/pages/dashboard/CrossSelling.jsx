@@ -44,15 +44,29 @@ function CrossSelling(props) {
     const { addToast } = useToasts();
     const history = useHistory();
     const [planActual, setPlanActual] = useState('Free');
+    const [plan, setPlan] = useState({ cross_selling: 0 });
 
     useEffect(() => {
         const user_object = reactLocalStorage.getObject('user');
         if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
             reactLocalStorage.remove('user');
             history.push('/login');
-        } else {
-            setPlanActual(user_object.plan);
         }
+
+        const config = {
+            headers: {
+                "Authorization": `Bearer ${user_object.token}`
+            }
+        };
+
+        axios.get(
+            'https://ws.conectaguate.com/api/v1/site/planactual',
+            config
+        ).then(async (response) => {
+            //Plan Response Data Plan
+            setPlanActual(response.data.Plan);
+            setPlan(response.data.PlanActual);
+        });
     }, []);
 
     useEffect(() => {
@@ -323,7 +337,7 @@ function CrossSelling(props) {
                     </CCol>
                 </CRow>
                 <VideoComponentCrossSelling />
-                <CRow style={{ display: (planActual === 'Premium') ? 'none' : 'block' }}>
+                <CRow style={{ display: plan.cross_selling === 1 ? 'none' : 'block' }}>
                     <CCol>
                         <CJumbotron className="border jumbotron-content">
                             <p className="lead">Empieza a disfrutar de los beneficios que ConectaGuate te
@@ -345,7 +359,7 @@ function CrossSelling(props) {
                         </CJumbotron>
                     </CCol>
                 </CRow>
-                <CRow style={{ display: (planActual !== 'Premium') ? 'none' : 'block' }}>
+                <CRow style={{ display: plan.cross_selling === 1 ? 'block' : 'none' }}>
                     {
 
                         <CContainer className="products-cross-selling mt-5 mb-5">
@@ -394,7 +408,7 @@ function CrossSelling(props) {
                     }
 
                 </CRow>
-                <CContainer style={{ display: (planActual !== 'Premium') ? 'none' : 'block' }}>
+                <CContainer style={{ display: plan.cross_selling === 1 ? 'block' : 'none' }}>
                     <CRow className=" mb-4">
                         {/* <CCol lg="1"></CCol> */}
                         <CCol className="col-md-auto">
@@ -410,7 +424,7 @@ function CrossSelling(props) {
                 </CContainer>
                 {
                     (data_cross_selling.length > 0) ?
-                        <CRow style={{ display: (planActual !== 'Premium') ? 'none' : 'block' }}>
+                        <CRow style={{ display: plan.cross_selling === 1 ? 'block' : 'none' }}>
                             <CCol style={{ height: '55vh' }}>
                                 <MultipleSlidesExample data={data_cross_selling} />
                             </CCol>

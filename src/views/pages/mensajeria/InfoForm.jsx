@@ -166,10 +166,7 @@ function InfoForm(props) {
                     <CCol sm="6">
                         <CRow className="">
                             <p className="d-inline-flex copy">
-                                Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-                                Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
-                                when an unknown printer took a galley of type and scrambled it to make a type
-                                specimen book.
+                                Si deseas el mejor servicio para la entrega de paquetes, invitaciones, carga dedicada, frágil, tramites para tu negocio, empresa y soluciones adicionales, en Conecta Guate, tenemos la solución. Pregunta por nuestros paquetes exclusivos para empresas.
                             </p>
 
                         </CRow>

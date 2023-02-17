@@ -42,7 +42,7 @@ function Sales(props) {
                             <CRow>
                                 <CCol className="cta">
                                     <CButton className="button" onClick={() => {
-                                        history.push('/mensajeria-corporativa');
+                                        window.open('https://yupiwow.com/vende-en-yupiwow/', '_blank');
                                     }} type="submit" size="lg" color="secondary">Ver más</CButton>
                                 </CCol>
                             </CRow>

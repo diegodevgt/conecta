@@ -21,7 +21,7 @@ function PlanesInfo(props) {
     })
 
     const [plan, setPlan] = useState({
-        free: 'Si te pasas al servicio Conecta Free, se cancelará tu plan Pro y ya no podrás contar con los beneficios que has adquirido.',
+        free: 'Envía tus paquetes a toda Guatemala con el mejor servicio profesional en paquetería. Te brindamos el tracking de entrega, control de tus envíos y liquidaciones para que conectes tu negocio con toda Guatemala.',
         pro: 'Cliente frecuente con precios especiales, incluye 5 viajes en la ciudad capital o zonas aledañas, más activacion de cross selling, 3 devoluciones',
         startup: 'Cliente frecuente con precios especiales, incluye 5 viajes en la ciudad capital al comprar tu primer pack.',
         premium: 'Cliente frecuente con precios especiales, incluye 10 viajes en la ciudad capital o zonas aledañas, más activación de cross selling, más adición al marketplace conecta, más ecommerce, más 3 devoluciones'
@@ -46,12 +46,25 @@ function PlanesInfo(props) {
     const { addToast } = useToasts();
 
     useEffect(() => {
+
         const user_object = reactLocalStorage.getObject('user');
         if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
             reactLocalStorage.remove('user');
             history.push('/login');
-        } else {
-            switch (user_object.plan) {
+        }
+
+        const config = {
+            headers: {
+                "Authorization": `Bearer ${user_object.token}`
+            }
+        };
+
+        axios.get(
+            'https://ws.conectaguate.com/api/v1/site/planactual',
+            config
+        ).then(async (response) => {
+            //Plan Response Data Plan
+            switch (response.data.Plan) {
                 case "Premium":
                     setPlanSelected({
                         free: false,
@@ -85,7 +98,7 @@ function PlanesInfo(props) {
                     });
                     break;
             }
-        }
+        });
     }, []);
 
     const solicitudCambioPlan = async (planId) => {

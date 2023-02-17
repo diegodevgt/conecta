@@ -74,11 +74,11 @@ function MisEnvios(props) {
                 field: 'localidad_org'
             },
             {
-                headerName: 'Destino',
+                headerName: 'Dirección',
                 field: 'destino'
             },
             {
-                headerName: 'Dirección',
+                headerName: 'Destino',
                 field: 'localidad_dest'
             },
             {
@@ -88,6 +88,14 @@ function MisEnvios(props) {
             {
                 headerName: 'Fecha',
                 field: 'fecha_creacion'
+            },
+            {
+                headerName: 'COD',
+                field: 'flg_cod'
+            },
+            {
+                headerName: 'Monto COD',
+                field: 'COD'
             },
             {
                 headerName: 'Estado',
@@ -286,6 +294,7 @@ function MisEnvios(props) {
                 let data_arr = [];
                 let data = response.data['Data'];
                 let i = 1;
+                console.log(data);
                 data.forEach((elem) => {
                     if (elem.created_at) {
                         let date = new Date(elem.created_at);
@@ -313,7 +322,9 @@ function MisEnvios(props) {
                         key: elem.guia,
                         fecha_creacion: elem.fecha_creacion,
                         date_created: elem.created_at,
-                        fecha_entrega: ""
+                        fecha_entrega: "",
+                        flg_cod: elem.flg_cod === 1 ? 'Si' : 'No',
+                        COD: elem.flg_cod === 1 ? `Q${elem.COD}` : "Q0.00"
                     };
                     data_arr.push(object);
                     i++;

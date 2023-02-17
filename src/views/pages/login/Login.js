@@ -100,6 +100,13 @@ const Login = () => {
 
       setLoginSuccess(true)
       let result = dataApi.response;
+
+      reactLocalStorage.setObject('user', {
+        'email': login.username,
+        'token': result.data.access_token,
+        'plan': ''
+      });
+
       addToast(`Login Exitoso`, {
         appearance: 'success',
         autoDismiss: true,
@@ -111,17 +118,6 @@ const Login = () => {
           "Authorization": `Bearer ${result.data.access_token}`
         }
       };
-
-      axios.get(
-        'https://ws.conectaguate.com/api/v1/site/planactual',
-        config
-      ).then(async (response) => {
-        reactLocalStorage.setObject('user', {
-          'email': login.username,
-          'token': result.data.access_token,
-          'plan': response.data.Plan
-        });
-      });
 
 
 
@@ -177,6 +173,9 @@ const Login = () => {
                         fluid
                         src={"img/logo_conecta.png"}
                         className="logo-img"
+                        onClick={() => {
+                          history.push('/');
+                        }}
                       />
                       <p className="text-center subtitle">Iniciar Sesión</p>
                       <CInputGroup className="mb-3">
@@ -264,6 +263,9 @@ const Login = () => {
                       <CRow>
                         <CCol xs="12" className="text-left">
                           ¿No tienes cuenta? <CButton color="link" style={{ paddingLeft: '3px' }} to="/register">Registrate</CButton>
+                        </CCol>
+                        <CCol xs="12" className="text-right">
+                          <CButton color="link" style={{ paddingLeft: '0px', paddingRight: '0px' }} to="/">Regresar al inicio</CButton>
                         </CCol>
                       </CRow>
                     </CForm>

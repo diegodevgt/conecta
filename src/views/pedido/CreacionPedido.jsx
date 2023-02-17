@@ -14,8 +14,8 @@ import Select from 'react-select';
 import { useToasts } from 'react-toast-notifications';
 import { reactLocalStorage } from 'reactjs-localstorage';
 import { v4 as uuidv4 } from 'uuid';
-
-
+import BlockUi from 'react-block-ui';
+import 'react-block-ui/style.css';
 
 const CreacionPedido = () => {
     const history = useHistory();
@@ -86,6 +86,7 @@ const CreacionPedido = () => {
         total: 0
     });
     const [cotizacionValida, setCotizacionValida] = useState(true);
+    const [blocking, setBlocking] = useState(false);
     // Fetch de departamentos
 
     useEffect(async () => {
@@ -156,6 +157,7 @@ const CreacionPedido = () => {
 
 
     const createOrder = async () => {
+
         const order = {};
         const transportes = {
             "Moto": 1,
@@ -169,6 +171,15 @@ const CreacionPedido = () => {
             tipo_pa = 2
         } else if (cobro.transferencia) {
             tipo_pa = 4
+        }
+
+        if (tipo_pa === 4 && files.file === null) {
+            addToast(`Ingrese un voucher valido`, {
+                appearance: 'warning',
+                autoDismiss: true,
+                autoDismissTimeout: 10000
+            });
+            return;
         }
 
         order.pedido = {
@@ -205,7 +216,8 @@ const CreacionPedido = () => {
                 id_transporte: parseInt(elem.transporte),
                 valor: parseInt(elem.precio),
                 fragil: (elem.fragil === 'off') ? false : true,
-                descripcion: elem.paquete
+                descripcion: elem.paquete,
+                peso: elem.peso
             });
         })
 
@@ -231,6 +243,7 @@ const CreacionPedido = () => {
             bearer = `Bearer ${user_object.token}`;
         }
 
+        setBlocking(true);
         await axios({
             method: 'post',
             url: 'https://ws.conectaguate.com/api/v1/site/pedido/crear',
@@ -243,7 +256,7 @@ const CreacionPedido = () => {
             let data = response.data;
 
             //enviar voucher de pago
-            if (order.pedido.tipo_pago === 3) {
+            if (order.pedido.tipo_pago === 4) {
                 var bodyFormData = new FormData();
                 bodyFormData.append(
                     "img",
@@ -318,12 +331,14 @@ const CreacionPedido = () => {
             setRowsData([]);
             setStep(4);
             setFiles({});
+            setBlocking(false);
         }, (error) => {
             addToast(`Intente mas tarde`, {
                 appearance: 'error',
                 autoDismiss: true,
                 autoDismissTimeout: 4000
             });
+            setBlocking(false);
         });
 
         return false;
@@ -715,16 +730,16 @@ const CreacionPedido = () => {
                 remitente: "¿Quién envia?",
                 telefono_remitente: "Teléfono (Remitente)",
                 correo_remitente: "Correo Electronico (Remitente)",
-                pobladoOrigen: "Poblado (Remitente)",
+                pobladoOrigen: "Poblado (Remitente) || Departamento/Municipio",
                 direccion_remitente: "Direccion (Remitente)",
                 destinatario: "¿Quién recibe?",
                 telefono_destinatario: "Teléfono (Destinatario)",
-                pobladoDestino: "Poblado (Destinatario)",
+                pobladoDestino: "Poblado (Destinatario) || Departamento/Municipio",
                 direccion_destinatario: "Dirección (Destinatario)",
             };
 
             for (const [key, value] of Object.entries(data)) {
-                if (key in labels && value.length === 0) {
+                if (key in labels && (value.length === 0 || value === 0)) {
                     addToast(`El campo ${labels[key]} es requerido`, {
                         appearance: 'error',
                         autoDismiss: true,
@@ -911,6 +926,8 @@ const CreacionPedido = () => {
                                 costo_de_envio={costo_de_envio}
                                 files={files}
                                 consto_de_envio_text_cotiza={consto_de_envio_text_cotiza}
+                                blocking={blocking}
+                                setBlocking={setBlocking}
                             /> :
                             <Step4
                                 changeStep={setStep}
@@ -2259,15 +2276,19 @@ const Step3 = (props) => {
                     </CCol>
                     <CCol sm="4">
                         <CRow className="buttons-next">
+
                             <label className="next" style={{ fontSize: '1.3rem' }}>
-                                Finalizar Orden
+                                {props.blocking ? 'Cargando...' : 'Finalizar Orden'}
+                                <BlockUi blocking={props.blocking} />
                             </label>
+
                             <button
                                 type="button"
                                 className="btn btn-danger btn-circle btn-xl"
-                                // onClick={nextStep}
                                 onClick={props.createOrder}
+                                disabled={props.blocking}
                             >
+
                                 <CIcon
                                     style={{ color: 'white', width: '2rem', height: '2rem', fontSize: '2rem' }}
                                     name="cil-arrow-right"

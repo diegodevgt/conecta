@@ -255,6 +255,9 @@ const Register = () => {
                         fluid
                         src={"img/logo_conecta.png"}
                         className="logo-img"
+                        onClick={() => {
+                          history.push('/');
+                        }}
                       />
                       <p className="text-center subtitle">Selecciona tu método de registro</p>
 
@@ -350,7 +353,13 @@ const Register = () => {
                           Al continuar aceptas nuestros
                         </CCol>
                         <CCol xs="12" className="text-center">
-                          <CButton className="left-button" color="link">Terminos y Condiciones</CButton>y<CButton className="right-button" color="link" >Politicas de privacidad</CButton>
+                          <CButton style={{ paddingLeft: '0px', paddingRight: '0px' }} className="left-button" color="link" onClick={() => {
+                            //terminso_condiciones_conecta22.pdf
+                            window.open('https://conectaguate.com/legales/terminso_condiciones_conecta22.pdf', '_blank').focus();
+                          }}>Terminos y Condiciones</CButton>
+                        </CCol>
+                        <CCol xs="12" className="text-center">
+                          <CButton color="link" style={{ paddingLeft: '0px', paddingRight: '0px' }} to="/">Regresar al inicio</CButton>
                         </CCol>
                       </CRow>
                     </CForm>

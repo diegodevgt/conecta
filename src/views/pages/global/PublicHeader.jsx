@@ -8,10 +8,21 @@ import { useHistory } from "react-router-dom";
 
 function PublicHeader(props) {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrollAuto, setScrollAuto] = useState('');
   const history = useHistory();
 
+  window.onscroll = function () { myFunction() };
+
+  function myFunction() {
+    if (window.scrollY > 100) {
+      setScrollAuto('container-header active');
+    } else {
+      setScrollAuto('container-header');
+    }
+  }
+
   return (
-    <div>
+    <div className={`${scrollAuto}`}>
       <CNavbar expandable="sm" className="home-header" >
         <CToggler
           style={{
@@ -48,7 +59,7 @@ function PublicHeader(props) {
           </CNavbarNav>
         </CCollapse>
       </CNavbar>
-    </div>
+    </div >
   )
 
 }

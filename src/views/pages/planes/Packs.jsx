@@ -20,51 +20,51 @@ import {
     CLabel,
     CTextarea,
     CImg
-  } from '@coreui/react';
+} from '@coreui/react';
 
 function Packs(props) {
     return (
-        <>  
+        <>
             <CContainer className="packs-container">
                 <CRow style={{
                 }}>
                     <CCol sm="4">
-                        <CImg 
+                        <CImg
                             className={"pack"}
                             src={"img/packs/ciudad.png"}
                             style={{
                                 // width:'200px', 
-                                display:'block',
+                                display: 'block',
                                 marginLeft: 'auto',
                                 marginRight: 'auto'
                             }}
                         />
                     </CCol>
                     <CCol sm="4">
-                        <CImg 
+                        <CImg
                             className={"pack"}
-                            src="img/packs/aledaños.png"
+                            src="img/packs/aledanos.png"
                             style={{
                                 // width:'200px', 
-                                display:'block',
+                                display: 'block',
                                 marginLeft: 'auto',
                                 marginRight: 'auto'
                             }}
                         />
                     </CCol>
-                    <CCol sm="4"> 
-                        <CImg 
+                    <CCol sm="4">
+                        <CImg
                             className={"pack"}
                             src="img/packs/interior.png"
                             style={{
                                 // width:'200px', 
-                                display:'block',
+                                display: 'block',
                                 marginLeft: 'auto',
                                 marginRight: 'auto'
                             }}
                         />
                     </CCol>
-                </CRow>  
+                </CRow>
             </CContainer>
         </>
     )
