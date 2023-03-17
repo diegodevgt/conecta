@@ -38,17 +38,23 @@ function Packs(props) {
                                 marginLeft: 'auto',
                                 marginRight: 'auto'
                             }}
+                            onClick={() => {
+                                window.open('https://app.recurrente.com/s/conecta-guate/pack-ciudad', '_blank').focus();
+                            }}
                         />
                     </CCol>
                     <CCol sm="4">
                         <CImg
                             className={"pack"}
-                            src="img/packs/aledanos.png"
+                            src="img/packs/aledaños.png"
                             style={{
                                 // width:'200px', 
                                 display: 'block',
                                 marginLeft: 'auto',
                                 marginRight: 'auto'
+                            }}
+                            onClick={() => {
+                                window.open('https://app.recurrente.com/s/conecta-guate/pack-aledanos', '_blank').focus();
                             }}
                         />
                     </CCol>
@@ -61,6 +67,9 @@ function Packs(props) {
                                 display: 'block',
                                 marginLeft: 'auto',
                                 marginRight: 'auto'
+                            }}
+                            onClick={() => {
+                                window.open('https://app.recurrente.com/s/conecta-guate/pack-interior', '_blank').focus();
                             }}
                         />
                     </CCol>

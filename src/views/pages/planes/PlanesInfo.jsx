@@ -16,29 +16,25 @@ function PlanesInfo(props) {
     const [images, setImages] = useState({
         free: 'img/icons/planes/mundo.svg',
         pro: 'img/icons/planes/estrella.svg',
-        startup: 'img/icons/planes/mundo-bandera.svg',
         premium: 'img/icons/planes/diamante.svg'
     })
 
     const [plan, setPlan] = useState({
-        free: 'Envía tus paquetes a toda Guatemala con el mejor servicio profesional en paquetería. Te brindamos el tracking de entrega, control de tus envíos y liquidaciones para que conectes tu negocio con toda Guatemala.',
-        pro: 'Cliente frecuente con precios especiales, incluye 5 viajes en la ciudad capital o zonas aledañas, más activacion de cross selling, 3 devoluciones',
-        startup: 'Cliente frecuente con precios especiales, incluye 5 viajes en la ciudad capital al comprar tu primer pack.',
-        premium: 'Cliente frecuente con precios especiales, incluye 10 viajes en la ciudad capital o zonas aledañas, más activación de cross selling, más adición al marketplace conecta, más ecommerce, más 3 devoluciones'
+        free: '<strong>Free:</strong> Envía tus paquetes a toda Guatemala con el mejor servicio profesional en paquetería. <br><br><ul><li>Atención personalizada.</li><li>Tracking de entrega.</li><li>Control de tus envíos.</li><li>Guías personalizadas.</li></ul><br><strong>Tarifas por envío:</strong><br>Ciudad Q25.00 <br>Aledaños Q35.00 <br>Interior (todo destino) Q45.00 + 4% fee por pago contra entrega.<br><br>',
+        pro: '<strong>Pro:</strong> Al contar con la Suscripción PRO obtienes los siguientes beneficios:<br><ul><li>Atención personalizada.</li><li>Tracking de entrega.</li><li>Control de tus envíos. </li><li>Guías personalizadas.</li><li>Incluye 5 envíos en zonas aledañas o ciudad.</li><li>Activación de Cross Selling.</li><li>3 devoluciones. </li></ul><br><strong>Tarifas por envío:</strong><br>Ciudad Q25.00<br>Aledaños Q30.00<br>Interior (todo destino) Q35.00 + 4% fee por pago contra entrega.<br>',
+        premium: '<strong>Premium:</strong> Conecta tu negocio a toda Guatemala con las mejores tarifas y beneficios que te ofrecemos: <br> <ul><li>Atención personalizada.</li><li>Tracking de entrega.</li><li>Control de tus envíos. </li><li>Guías personalizadas.</li><li>Incluye 25 envíos en zonas aledañas o ciudad.</li><li>Activación de Cross Selling.</li><li>5 devoluciones. </li></ul><br><strong>Tarifas por envío: </strong><br>Ciudad Q20.00 <br>Aledaños Q20.00 <br>Interior (todo destino) Q30.00 + 4% fee por pago contra entrega. <br>'
     })
 
 
     const [planPrice, setPlanrice] = useState({
         free: 'Q 0.00',
-        pro: 'Q 149.00',
-        startup: 'Q 99.00',
+        pro: 'Q 150.00',
         premium: 'Q 299.00',
     })
 
     const [planSelected, setPlanSelected] = useState({
         free: false,
         pro: false,
-        startup: false,
         premium: false
     });
 
@@ -69,7 +65,6 @@ function PlanesInfo(props) {
                     setPlanSelected({
                         free: false,
                         pro: false,
-                        startup: false,
                         premium: true
                     });
                     break;
@@ -77,7 +72,6 @@ function PlanesInfo(props) {
                     setPlanSelected({
                         free: false,
                         pro: true,
-                        startup: false,
                         premium: false
                     });
                     break;
@@ -85,7 +79,6 @@ function PlanesInfo(props) {
                     setPlanSelected({
                         free: true,
                         pro: false,
-                        startup: false,
                         premium: false
                     });
                     break;
@@ -93,7 +86,6 @@ function PlanesInfo(props) {
                     setPlanSelected({
                         free: false,
                         pro: false,
-                        startup: true,
                         premium: false
                     });
                     break;
@@ -142,7 +134,6 @@ function PlanesInfo(props) {
                 plans = {
                     free: true,
                     pro: false,
-                    startup: false,
                     premium: false
                 }
                 solicitudCambioPlan(1);
@@ -151,25 +142,14 @@ function PlanesInfo(props) {
                 plans = {
                     free: false,
                     pro: true,
-                    startup: false,
                     premium: false
                 }
                 solicitudCambioPlan(2);
-                break;
-            case 'startup':
-                plans = {
-                    free: false,
-                    pro: false,
-                    startup: true,
-                    premium: false
-                }
-                solicitudCambioPlan(4);
                 break;
             case 'premium':
                 plans = {
                     free: false,
                     pro: false,
-                    startup: false,
                     premium: true
                 }
                 solicitudCambioPlan(3);
@@ -178,7 +158,6 @@ function PlanesInfo(props) {
                 plans = {
                     free: false,
                     pro: false,
-                    startup: false,
                     premium: false
                 }
         }
@@ -212,17 +191,6 @@ function PlanesInfo(props) {
                     changePlan={onChangePlan}
                     plan={"pro"}
                     price={planPrice.pro}
-                    actual={planSelected}
-                />
-                <br />
-                <CardPlan
-                    img={images.startup}
-                    subtitle={"Startup"}
-                    description={plan.startup}
-                    active={planSelected.startup}
-                    changePlan={onChangePlan}
-                    plan={"startup"}
-                    price={planPrice.startup}
                     actual={planSelected}
                 />
                 <br />
@@ -272,9 +240,9 @@ function CardPlan(props) {
                                     </CRow>
                                 </CCol>
                                 <CCol sm="9">
-                                    <CRow className="align-items-center description">
-                                        {props.description}
-                                    </CRow>
+                                    <div className='align-items-center description' dangerouslySetInnerHTML={{ __html: props.description }}>
+
+                                    </div>
                                 </CCol>
                             </CRow>
                             <CRow className="align-items-end">
