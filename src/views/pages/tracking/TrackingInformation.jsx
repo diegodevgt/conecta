@@ -158,7 +158,7 @@ function TrackingInformation(props) {
                         classes.step2_img = "completed"
                         classes.step3_img = "completed"
                         classes.step4_img = "completed"
-                    } else if (res["Pedido"].estado_pedido === 'Transito') {
+                    } else if (res["Pedido"].estado_pedido === 'Tránsito') {
                         classes.step1 = "stepper-item completed"
                         classes.step2 = "stepper-item completed"
                         classes.step3 = "stepper-item active"
@@ -167,7 +167,7 @@ function TrackingInformation(props) {
                         classes.step2_img = "completed"
                         classes.step3_img = "active"
                         classes.step4_img = "completed-hold"
-                    } else if (res["Pedido"].estado_pedido === 'Almacen') {
+                    } else if (res["Pedido"].estado_pedido === 'Almacén') {
                         classes.step1 = "stepper-item completed"
                         classes.step2 = "stepper-item active"
                         classes.step3 = "stepper-item "
@@ -194,7 +194,7 @@ function TrackingInformation(props) {
                         classes.step2_img = "completed-hold"
                         classes.step3_img = "completed-hold"
                         classes.step4_img = "completed-hold"
-                    } else if (res["Pedido"].estado_pedido === 'Devolucion') {
+                    } else if (res["Pedido"].estado_pedido === 'Devolución') {
                         classes.step1 = "stepper-item completed"
                         classes.step2 = "stepper-item completed"
                         classes.step3 = "stepper-item active"
@@ -220,6 +220,15 @@ function TrackingInformation(props) {
                         classes.step1_img = "completed"
                         classes.step2_img = "completed"
                         classes.step3_img = "completed"
+                        classes.step4_img = "completed-hold"
+                    } else {
+                        classes.step1 = "stepper-item completed"
+                        classes.step2 = "stepper-item active"
+                        classes.step3 = "stepper-item "
+                        classes.step4 = "stepper-item "
+                        classes.step1_img = "completed"
+                        classes.step2_img = "active"
+                        classes.step3_img = "completed-hold"
                         classes.step4_img = "completed-hold"
                     }
                     setStepClasses({ ...classes })
@@ -261,7 +270,7 @@ function TrackingInformation(props) {
     return (
         (info && step_classes) ?
             <>
-                <CContainer className="tracking-info mt-5 mb-5">
+                <CContainer className="tracking-info pt-5 pb-5">
                     <CRow className="justify-content-md-center mb-3">
                         {/* <CCol lg="1"></CCol> */}
                         <CCol className="col-md-auto">
@@ -292,7 +301,7 @@ function TrackingInformation(props) {
                                             style={{ height: (step_classes.step2_img !== 'completed-hold') ? '120px' : '80px' }}
                                         />
                                     </div>
-                                    <div className="step-name">Recolectado</div>
+                                    <div className="step-name">Almacén</div>
                                 </div>
                                 <div className={step_classes.step3}>
                                     <div className="step-counter">
@@ -302,7 +311,7 @@ function TrackingInformation(props) {
                                             style={{ height: (step_classes.step3_img !== 'completed-hold') ? '120px' : '80px' }}
                                         />
                                     </div>
-                                    <div className="step-name">En Transito</div>
+                                    <div className="step-name">En Tránsito</div>
                                 </div>
                                 <div className={step_classes.step4}>
                                     <div className="step-counter">
@@ -331,7 +340,7 @@ function TrackingInformation(props) {
                     </CRow>
                     <CRow className="justify-content-md-center mb-3">
                         <CCol sm="12" lg="10">
-                            <CCard className="tracking-card">
+                            <CCard className="tracking-card pt-5 pb-5">
                                 {
                                     Object.entries(info_keys).map(
                                         ([key, value], index) => {
@@ -351,7 +360,6 @@ function TrackingInformation(props) {
                                         }
                                     )
                                 }
-                                <br />
                             </CCard>
                         </CCol>
                     </CRow>

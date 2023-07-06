@@ -9,7 +9,6 @@ import {
 import { useToasts } from 'react-toast-notifications';
 import { reactLocalStorage } from 'reactjs-localstorage';
 import Select from 'react-select';
-import { logo } from 'src/assets/icons/logo';
 
 function Profile(props) {
     const history = useHistory();
@@ -244,48 +243,51 @@ function Profile(props) {
         axios.get(
             'https://ws.conectaguate.com/api/v1/site/usuario/information',
             config
-        ).then((response) => {
-
-            let data_usuario = response.data.usuario;
-            if (data_usuario === null) return false;
-
-            if (ifNotNull(data_usuario.fecha_nacimiento)) {
-                data_usuario.fecha_nacimiento_day = data_usuario.fecha_nacimiento.substring(8, 10);
-                data_usuario.fecha_nacimiento_month = data_usuario.fecha_nacimiento.substring(5, 7)
-                data_usuario.fecha_nacimiento_year = data_usuario.fecha_nacimiento.substring(0, 4)
-                if (parseInt(data_usuario.fecha_nacimiento_day) < 10) {
-                    data_usuario.fecha_nacimiento_day = data_usuario.fecha_nacimiento_day.replace('0', '');
-                }
-                if (parseInt(data_usuario.fecha_nacimiento_month) < 10) {
-                    data_usuario.fecha_nacimiento_month = data_usuario.fecha_nacimiento_month.replace('0', '');
-                }
-            }
-
-            if (ifNotNull(data_usuario.lon) && ifNotNull(data_usuario.lat)) {
-                setLocation({
-                    full_location: `Longitud = ${data_usuario.lon} \n Latitud = ${data_usuario.lat}`,
-                    lat: data_usuario.lat,
-                    long: data_usuario.lon
-                })
-            }
-            setProfile({
-                ...profile,
-                ...data_usuario,
-                telefono: data_usuario.phone,
-                nombre_tienda: data_usuario.empresa,
-                direccion_de_recolecta: data_usuario.direccion_recoleccion,
-                nombre_de_cuenta: data_usuario.cuenta_nombre,
-                nombre_banco: data_usuario.cuenta_banco,
-                numero_de_cuenta: data_usuario.cuenta_numero,
-                tipo_de_cuenta: data_usuario.cuenta_tipo,
-                tipo_producto: data_usuario.tipo_producto,
-                departamentoId: data_usuario.departamentoId,
-                municipioid: data_usuario.municipioId,
-                logo: data_usuario.img !== null ? `https://ws.conectaguate.com/${data_usuario.img}` : null
-            })
-            searchMunicipios(data_usuario.departamentoId);
+        ).then(async (response) => {
+            await asignacionDeDatos(response);
+            searchMunicipios(response.data.usuario.departamentoId);
         });
     }, []);
+
+    const asignacionDeDatos = async (response) => {
+        let data_usuario = response.data.usuario;
+        if (data_usuario === null) return false;
+
+        if (ifNotNull(data_usuario.fecha_nacimiento)) {
+            data_usuario.fecha_nacimiento_day = data_usuario.fecha_nacimiento.substring(8, 10);
+            data_usuario.fecha_nacimiento_month = data_usuario.fecha_nacimiento.substring(5, 7)
+            data_usuario.fecha_nacimiento_year = data_usuario.fecha_nacimiento.substring(0, 4)
+            if (parseInt(data_usuario.fecha_nacimiento_day) < 10) {
+                data_usuario.fecha_nacimiento_day = data_usuario.fecha_nacimiento_day.replace('0', '');
+            }
+            if (parseInt(data_usuario.fecha_nacimiento_month) < 10) {
+                data_usuario.fecha_nacimiento_month = data_usuario.fecha_nacimiento_month.replace('0', '');
+            }
+        }
+
+        if (ifNotNull(data_usuario.lon) && ifNotNull(data_usuario.lat)) {
+            setLocation({
+                full_location: `Longitud = ${data_usuario.lon} \n Latitud = ${data_usuario.lat}`,
+                lat: data_usuario.lat,
+                long: data_usuario.lon
+            })
+        }
+        setProfile({
+            ...profile,
+            ...data_usuario,
+            telefono: data_usuario.phone,
+            nombre_tienda: data_usuario.empresa,
+            direccion_de_recolecta: data_usuario.direccion_recoleccion,
+            nombre_de_cuenta: data_usuario.cuenta_nombre,
+            nombre_banco: data_usuario.cuenta_banco,
+            numero_de_cuenta: data_usuario.cuenta_numero,
+            tipo_de_cuenta: data_usuario.cuenta_tipo,
+            tipo_producto: data_usuario.tipo_producto,
+            departamentoId: data_usuario.departamentoId,
+            municipioId: data_usuario.municipioId,
+            logo: data_usuario.img !== null ? `https://ws.conectaguate.com/${data_usuario.img}` : null
+        });
+    }
 
     useEffect(() => {
 
@@ -789,20 +791,27 @@ function Profile(props) {
                         <CFormGroup>
                             <CLabel htmlFor="departamento">Departamento</CLabel>
                             <CFormGroup>
-                                <CSelect
+                                <Select
                                     styles={{ border: '0px solid' }}
                                     className="card-input"
-                                    placeholder={"Departamento/Municipio"}
-                                    name="departamentoId"
-                                    id="departamentoId"
+                                    placeholder={"Departamento"}
+                                    name={"departamentoId"}
+                                    id={"departamentoId"}
                                     onChange={(e) => { handleChange(e); searchMunicipios(e.target.value) }}
-                                    custom
-                                    value={profile.departamentoId}
-                                >
-                                    {departamentos.map((elem) => {
-                                        return <option key={elem.id} value={elem.id} >{elem.nombre}</option>
-                                    })}
-                                </CSelect>
+                                    value={
+                                        departamentos.map((departamento, index) => {
+                                            if (index === 0 && profile.departamentoId === 0) {
+                                                return { value: departamento.id, label: departamento.nombre, id: 'departamentoId', target: { value: departamento.id, label: departamento.nombre, id: 'departamentoId' } }
+                                            }
+                                            if (profile.departamentoId !== 0 && departamento.id === profile.departamentoId) {
+                                                return { value: departamento.id, label: departamento.nombre, id: 'departamentoId', target: { value: departamento.id, label: departamento.nombre, id: 'departamentoId' } }
+                                            }
+                                        })
+                                    }
+                                    options={
+                                        departamentos.map(departamento => {
+                                            return { value: departamento.id, label: departamento.nombre, id: 'departamentoId', target: { value: departamento.id, label: departamento.nombre, id: 'departamentoId' } }
+                                        })} />
                             </CFormGroup>
                         </CFormGroup>
                     </CCol>
@@ -810,11 +819,32 @@ function Profile(props) {
                         <CFormGroup>
                             <CLabel htmlFor="municipio">Municipio</CLabel>
                             <CFormGroup>
-                                <CSelect onChange={handleChange} value={profile.municipioId} custom name="municipioId" id="municipioId">
-                                    {municipios.map((elem) => {
-                                        return <option key={elem.id} value={elem.id}>{elem.nombre}</option>
-                                    })}
-                                </CSelect>
+                                <Select
+                                    styles={{ border: '0px solid' }}
+                                    className="card-input"
+                                    isSearchable={false}
+                                    placeholder={"Municipio"}
+                                    id={"municipioId"}
+                                    name={"municipioId"}
+                                    onChange={handleChange}
+                                    required
+                                    options={
+                                        municipios.map(item => {
+                                            return { value: item.id, label: item.nombre, id: 'municipioId', target: { value: item.id, label: item.nombre, id: 'municipioId' } }
+                                        })
+                                    }
+                                    value={
+                                        municipios.map((municipio, index) => {
+                                            if (index === 0 && municipios.filter(municipio => municipio.id === profile.municipioId).length === 0) {
+                                                return { value: municipio.id, label: municipio.nombre, id: 'municipioId', target: { value: municipio.id, label: municipio.nombre, id: 'municipioId' } }
+                                            }
+                                            if (profile.municipioId !== 0 && profile.municipioId === municipio.id) {
+                                                return { value: municipio.id, label: municipio.nombre, id: 'municipioId', target: { value: municipio.id, label: municipio.nombre, id: 'municipioId' } }
+                                            }
+                                        })
+
+                                    }
+                                />
                             </CFormGroup>
                         </CFormGroup>
                     </CCol>

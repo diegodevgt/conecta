@@ -18,7 +18,7 @@ body {
   font-family: "Poppins", sans-serif !important;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
-  background-color: white;
+  background-color: white !important;
 }
 
 body .c-app {
@@ -63,14 +63,14 @@ body .c-footer {
 }
 
 body .c-footer .footer-container {
-  color: #ebedef;
+  color: #fff;
   background-color: #3c4b64;
   padding-bottom: 2rem;
   padding-top: 1.5rem;
 }
 
 body .c-footer .footer-container .link-item {
-  color: #ebedef;
+  color: #fff;
   text-decoration: none;
   font-size: 1.05rem;
   line-height: 2rem;
@@ -503,7 +503,8 @@ body .products-cross-selling .card-bk {
 }
 
 html body .card {
-  background-color: #F8F8F8 !important;
+  background-color: #F4F5F8 !important;
+  border-radius: 0.5rem;
 }
 
 body .products-cross-selling .background-image-card {

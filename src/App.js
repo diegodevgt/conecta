@@ -54,6 +54,7 @@ class App extends Component {
               <Route path="/cuenta/password" name="Password" render={props => <TheLayout {...props} />} />
               <Route path="/cuenta/recibos" name="Recibos" render={props => <TheLayout {...props} />} />
               <Route path="/mis-envios" name="Mis Envios" render={props => <TheLayout {...props} />} />
+              <Route path="/mis-cupones" name="Mis Cupones" render={props => <TheLayout {...props} />} />
               <Route path="/planes-disponibles" name="Planes Disponibles" render={props => <TheLayout {...props} />} />
               <Route path="/coberturas" name="Coberturas" render={props => <TheLayout {...props} />} />
               <Route path="/recomendaciones" name="Recomendaciones" render={props => <TheLayout {...props} />} />

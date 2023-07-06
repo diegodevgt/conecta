@@ -46,7 +46,7 @@ function Packs(props) {
                     <CCol sm="4">
                         <CImg
                             className={"pack"}
-                            src="img/packs/aledaños.png"
+                            src="img/packs/aledanos.png"
                             style={{
                                 // width:'200px', 
                                 display: 'block',

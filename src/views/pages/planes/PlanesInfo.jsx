@@ -20,16 +20,65 @@ function PlanesInfo(props) {
     })
 
     const [plan, setPlan] = useState({
-        free: '<strong>Free:</strong> Envía tus paquetes a toda Guatemala con el mejor servicio profesional en paquetería. <br><br><ul><li>Atención personalizada.</li><li>Tracking de entrega.</li><li>Control de tus envíos.</li><li>Guías personalizadas.</li></ul><br><strong>Tarifas por envío:</strong><br>Ciudad Q25.00 <br>Aledaños Q35.00 <br>Interior (todo destino) Q45.00 + 4% fee por pago contra entrega.<br><br>',
-        pro: '<strong>Pro:</strong> Al contar con la Suscripción PRO obtienes los siguientes beneficios:<br><ul><li>Atención personalizada.</li><li>Tracking de entrega.</li><li>Control de tus envíos. </li><li>Guías personalizadas.</li><li>Incluye 5 envíos en zonas aledañas o ciudad.</li><li>Activación de Cross Selling.</li><li>3 devoluciones. </li></ul><br><strong>Tarifas por envío:</strong><br>Ciudad Q25.00<br>Aledaños Q30.00<br>Interior (todo destino) Q35.00 + 4% fee por pago contra entrega.<br>',
-        premium: '<strong>Premium:</strong> Conecta tu negocio a toda Guatemala con las mejores tarifas y beneficios que te ofrecemos: <br> <ul><li>Atención personalizada.</li><li>Tracking de entrega.</li><li>Control de tus envíos. </li><li>Guías personalizadas.</li><li>Incluye 25 envíos en zonas aledañas o ciudad.</li><li>Activación de Cross Selling.</li><li>5 devoluciones. </li></ul><br><strong>Tarifas por envío: </strong><br>Ciudad Q20.00 <br>Aledaños Q20.00 <br>Interior (todo destino) Q30.00 + 4% fee por pago contra entrega. <br>'
+        free: {
+            description: 'Envía tus paquetes a toda Guatemala con el mejor servicio profesional en paquetería.',
+            listado: [
+                'Tracking de entrega.',
+                'Control de tus envíos.',
+                'Guías personalizadas.'
+            ],
+            tarifas: [
+                'Q25.00 Ciudad.',
+                'Q35.00 Aledaños.',
+                'Q45.00 Interior todo destino (4% fee por pago contra entrega).'
+            ]
+        },
+        pro: {
+            description: 'Al contar con la Suscripción PRO obtienes los siguientes beneficios:',
+            listado: [
+                'Atención personalizada.',
+                'Tracking de entrega.',
+                'Control de tus envíos.',
+                'Guías personalizadas.',
+                'Incluye 5 envíos en zonas aledañas o ciudad.',
+                'Activación de Cross Selling.',
+                '3 devoluciones.'
+            ],
+            tarifas: [
+                'Q25.00 Ciudad.',
+                'Q30.00 Aledaños.',
+                'Q35.00 Interior todo destino (4% fee por pago contra entrega).'
+            ]
+        },
+        premium: {
+            description: 'Conecta tu negocio a toda Guatemala con las mejores tarifas y beneficios que te ofrecemos:',
+            listado: [
+                'Atención personalizada.',
+                'Tracking de entrega.',
+                'Control de tus envíos.',
+                'Guías personalizadas.',
+                'Incluye 25 envíos en zonas aledañas o ciudad.',
+                'Activación de Cross Selling.',
+                '5 devoluciones.'
+            ],
+            tarifas: [
+                'Q20.00 Ciudad.',
+                'Q25.00 Aledaños.',
+                'Q32.00 Interior todo destino (4% fee por pago contra entrega).'
+            ]
+        }
+    })
+
+    const [descripciones, setDescripcion] = useState({
+        description: '',
+        listado: []
     })
 
 
     const [planPrice, setPlanrice] = useState({
         free: 'Q 0.00',
         pro: 'Q 150.00',
-        premium: 'Q 299.00',
+        premium: 'Q 500.00',
     })
 
     const [planSelected, setPlanSelected] = useState({
@@ -45,8 +94,12 @@ function PlanesInfo(props) {
 
         const user_object = reactLocalStorage.getObject('user');
         if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
-            reactLocalStorage.remove('user');
-            history.push('/login');
+            setPlanSelected({
+                free: true,
+                pro: false,
+                premium: false
+            });
+            return;
         }
 
         const config = {
@@ -98,8 +151,15 @@ function PlanesInfo(props) {
 
         let bearer = "";
         if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
-            reactLocalStorage.remove('user');
-            history.push('/login');
+            switch (planId) {
+                case 2:
+                    window.open('https://app.recurrente.com/s/conecta-guate/suscripcion-pro', '_blank', 'noopener,noreferrer');
+                    break;
+                case 3:
+                    window.open('https://app.recurrente.com/s/conecta-guate/suscripcion-premium', '_blank', 'noopener,noreferrer');
+                    break;
+            }
+            return;
         } else {
             bearer = `Bearer ${user_object.token}`;
         }
@@ -117,6 +177,15 @@ function PlanesInfo(props) {
                 autoDismiss: true,
                 autoDismissTimeout: 4000
             });
+            switch (planId) {
+                case 2:
+                    window.open('https://app.recurrente.com/s/conecta-guate/suscripcion-pro', '_blank', 'noopener,noreferrer');
+                    break;
+                case 3:
+                    window.open('https://app.recurrente.com/s/conecta-guate/suscripcion-premium', '_blank', 'noopener,noreferrer');
+                    break;
+            }
+
         }, (error) => {
             addToast(`Intente mas tarde`, {
                 appearance: 'error',
@@ -211,6 +280,46 @@ function PlanesInfo(props) {
     )
 }
 
+function Dots(props) {
+    const color = props.color === 'azul' || props.color === undefined ? '#63a0e3' : '#329a3b';
+    return (
+        <>
+            <svg color={color} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16" >
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" />
+            </svg>
+        </>
+    )
+}
+
+
+function DescriptionPlan(props) {
+    const descripcion = props.descripcion
+    const descripciones = descripcion.listado;
+    const tarifas = descripcion.tarifas;
+    const listadoDescripcion = descripciones.map((desc) => <li><Dots color="azul" /> {desc} </li>);
+    const listadoTarifas = tarifas.map((desc) => <li><Dots color="verde" /> {desc} </li>);
+    return (
+        <>
+            <CRow className="descripcion-title" >
+                <b>{descripcion.description}</b>
+            </CRow>
+            <CRow className="descripcion-listado">
+                <ul className="listado-ul" style={{ listStyleType: "none", paddingLeft: "3px" }} >
+                    {listadoDescripcion}
+                </ul>
+            </CRow>
+            <CRow className="tarifas">
+                <strong>Tarifas:</strong>
+            </CRow>
+            <CRow className="listadoTarifas">
+                <ul className="listado-tarifas" style={{ listStyleType: "none", paddingLeft: "3px" }}>
+                    {listadoTarifas}
+                </ul>
+            </CRow>
+        </>
+    )
+}
 
 function CardPlan(props) {
     return (
@@ -240,8 +349,8 @@ function CardPlan(props) {
                                     </CRow>
                                 </CCol>
                                 <CCol sm="9">
-                                    <div className='align-items-center description' dangerouslySetInnerHTML={{ __html: props.description }}>
-
+                                    <div className='align-items-center description'>
+                                        <DescriptionPlan descripcion={props.description} />
                                     </div>
                                 </CCol>
                             </CRow>
@@ -278,6 +387,9 @@ function CardPlan(props) {
                                         </CCol>
                                     </CRow>
                                 </CCol>
+                            </CRow>
+                            <CRow className="descripcionTarifas" style={{ width: '100%', textAlign: 'center' }}>
+                                <legend style={{ fontSize: '1em' }}>*Tarifa aplica por paquete</legend>
                             </CRow>
                         </CCardBody>
                     </CCard>

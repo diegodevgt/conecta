@@ -40,7 +40,8 @@ const CreacionPedido = () => {
         referencias_destinatario: "",
         pobladoDestino: 0,
         pobladoOrigen: 0,
-        cupon: ""
+        cupon: "",
+        cuponId: null
     });
     const [poblado, setPoblado] = useState([]);
     const [pobladoOrigen, setPobladoOrigen] = useState([]);
@@ -109,7 +110,6 @@ const CreacionPedido = () => {
             'https://ws.conectaguate.com/api/v1/site/verificado',
             config
         ).then(async (response) => {
-            console.log("response", response.data.verificacion);
             if (response.data.verificacion === null) {
                 addToast(`Verificacion Necesaria`, {
                     appearance: 'warning',
@@ -690,22 +690,45 @@ const CreacionPedido = () => {
     }
 
     const handleChangePobladoOrg = (e) => {
+
         const { value } = e;
         let data_copy = JSON.parse(JSON.stringify(data));
-        data_copy = {
-            ...data_copy,
-            "pobladoOrigen": value
+        const pobladoSelected = pobladoOrigen.find(poblado => poblado.id === value);
+
+        if (pobladoSelected.latitud !== null && pobladoSelected !== null && pobladoSelected.latitud !== 0 && pobladoSelected !== 0) {
+            data_copy = {
+                ...data_copy,
+                "pobladoOrigen": value,
+                "direccion_remitente": pobladoSelected.poblado
+            }
+        } else {
+            data_copy = {
+                ...data_copy,
+                "pobladoOrigen": value
+            }
         }
+
         setData(data_copy);
     }
 
     const handleChangePobladoDest = (e) => {
         const { value } = e;
         let data_copy = JSON.parse(JSON.stringify(data));
-        data_copy = {
-            ...data_copy,
-            "pobladoDestino": value
+        const pobladoSelected = poblado.find(locacion => locacion.id === value);
+
+        if (pobladoSelected.latitud !== null && pobladoSelected.longitud !== null && pobladoSelected.latitud !== 0 && pobladoSelected.longitud !== 0) {
+            data_copy = {
+                ...data_copy,
+                "pobladoDestino": value,
+                "direccion_destinatario": pobladoSelected.poblado
+            }
+        } else {
+            data_copy = {
+                ...data_copy,
+                "pobladoDestino": value
+            }
         }
+
         setData(data_copy);
     }
 
@@ -928,6 +951,7 @@ const CreacionPedido = () => {
                                 consto_de_envio_text_cotiza={consto_de_envio_text_cotiza}
                                 blocking={blocking}
                                 setBlocking={setBlocking}
+                                payment={payment}
                             /> :
                             <Step4
                                 changeStep={setStep}
@@ -964,8 +988,8 @@ const Step1 = (props) => {
                 setPayment(true);
                 props.setPayment(true);
                 props.setCobro({
-                    efectivo: true,
-                    transferencia: false,
+                    efectivo: false,
+                    transferencia: true,
                     contra_entrega: false
                 });
 
@@ -1399,7 +1423,6 @@ const Step2 = (props) => {
         }
 
         if (id === 'cod_input') {
-            console.log("Valor COD", value);
             if (value === '' || value < 0) {
                 val = '';
                 inputValueCod = '';
@@ -1620,7 +1643,8 @@ const Step2 = (props) => {
             data: {
                 "codigo": cupon,
                 pobladoDestino: props.data.pobladoDestino,
-                pobladoOrigen: props.data.pobladoOrigen
+                pobladoOrigen: props.data.pobladoOrigen,
+                cantidadDetalle: props.rows_data.length
             }
         }).then((result) => {
             addToast(`Cupon Aplicado Exitosamente`, {
@@ -1928,7 +1952,6 @@ const Step3 = (props) => {
         }
     };
 
-
     const handleChange = (e) => {
         const { id, value } = e.target;
         let bool_value;
@@ -1939,7 +1962,6 @@ const Step3 = (props) => {
         } else {
             bool_value = value;
         }
-
         switch (id) {
             case 'efectivo-pago':
 
@@ -1964,7 +1986,6 @@ const Step3 = (props) => {
                     contra_entrega: bool_value
                 });
                 break
-            default: ;
         }
     }
 
@@ -2012,6 +2033,14 @@ const Step3 = (props) => {
                 setValor(value.toFixed(2));
             } else {
                 setValor(0);
+            }
+
+            if (props.cobro.transferencia === false && props.cobro.contra_entrega === false && props.cobro.efectivo === false && props.payment === false) {
+                props.setCobro({
+                    transferencia: false,
+                    efectivo: false,
+                    contra_entrega: true
+                });
             }
         }
     }, [])
