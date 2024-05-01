@@ -19,6 +19,51 @@ function PlanesInfo(props) {
         premium: 'img/icons/planes/diamante.svg'
     })
 
+    const [contenido, setContenido] = useState([]);
+    const [planActualId, setPlanActualId] = useState([]);
+    let contenidoData = {
+        id: null,
+        nombre: null,
+        contenido: {
+            id: null,
+            planId: null,
+            nombre: null,
+            descripcion: null,
+            precio: null,
+            linkPago: null,
+            linkPublico: null,
+            icono: null,
+            created_at: null,
+            updated_at: null,
+            detalles:
+                [{
+                    id: null,
+                    contentId: null,
+                    descripcion: null,
+                    created_at: null,
+                    updated_at: null,
+                }],
+            tarifas: [
+                {
+                    id: null,
+                    contentId: null,
+                    descripcion: null,
+                    precio: null,
+                    created_at: null,
+                    updated_at: null
+                }
+            ]
+        },
+        costo: null,
+        pedidos: null,
+        duracion: null,
+        status: null,
+        updated_at: null,
+        created_at: null,
+        cross_selling: null,
+        flgPublico: null,
+    };
+
     const [plan, setPlan] = useState({
         free: {
             description: 'Envía tus paquetes a toda Guatemala con el mejor servicio profesional en paquetería.',
@@ -34,13 +79,13 @@ function PlanesInfo(props) {
             ]
         },
         pro: {
-            description: 'Al contar con la Suscripción PRO obtienes los siguientes beneficios:',
+            description: 'Realiza envíos como un Profesional y disfruta de estos beneficios:',
             listado: [
                 'Atención personalizada.',
                 'Tracking de entrega.',
                 'Control de tus envíos.',
                 'Guías personalizadas.',
-                'Incluye 5 envíos en zonas aledañas o ciudad.',
+                'Incluye 10 envíos al interior todo destino.',
                 'Activación de Cross Selling.',
                 '3 devoluciones.'
             ],
@@ -48,24 +93,28 @@ function PlanesInfo(props) {
                 'Q25.00 Ciudad.',
                 'Q30.00 Aledaños.',
                 'Q35.00 Interior todo destino (4% fee por pago contra entrega).'
-            ]
+            ],
+            leyenda: "*Tarifa aplica por paquete, hasta 15 lbs"
+
         },
         premium: {
-            description: 'Conecta tu negocio a toda Guatemala con las mejores tarifas y beneficios que te ofrecemos:',
+            description: 'Conecta tu negocio a toda Guatemala y posiciona tu marca:',
             listado: [
                 'Atención personalizada.',
                 'Tracking de entrega.',
                 'Control de tus envíos.',
                 'Guías personalizadas.',
-                'Incluye 25 envíos en zonas aledañas o ciudad.',
+                'Incluye 15 envíos departamentales.',
                 'Activación de Cross Selling.',
-                '5 devoluciones.'
+                'Sin coste por devoluciones.',
+                'Catálogo en línea'
             ],
             tarifas: [
                 'Q20.00 Ciudad.',
                 'Q25.00 Aledaños.',
-                'Q32.00 Interior todo destino (4% fee por pago contra entrega).'
-            ]
+                'Q32.00 Interior todo destino ( +4% fee por pago contra entrega).'
+            ],
+            leyenda: "*Tarifa aplica por paquete, hasta 15 lbs"
         }
     })
 
@@ -77,8 +126,8 @@ function PlanesInfo(props) {
 
     const [planPrice, setPlanrice] = useState({
         free: 'Q 0.00',
-        pro: 'Q 150.00',
-        premium: 'Q 500.00',
+        pro: 'Q 350.00',
+        premium: 'Q 750.00',
     })
 
     const [planSelected, setPlanSelected] = useState({
@@ -90,8 +139,22 @@ function PlanesInfo(props) {
     const history = useHistory();
     const { addToast } = useToasts();
 
-    useEffect(() => {
+    useEffect(async () => {
+        await cargarPlanes();
+        await obtenerPlanActual();
+    }, []);
 
+    const cargarPlanes = async () => {
+        axios.get(
+            'https://ws.conectaguate.com/api/v1/planes/contenido'
+        ).then(async (response) => {
+            //Plan Response Data Plan
+            const planesPublicos = response.data.Data.planes;
+            setContenido(planesPublicos);
+        });
+    }
+
+    const obtenerPlanActual = async () => {
         const user_object = reactLocalStorage.getObject('user');
         if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
             setPlanSelected({
@@ -113,51 +176,18 @@ function PlanesInfo(props) {
             config
         ).then(async (response) => {
             //Plan Response Data Plan
-            switch (response.data.Plan) {
-                case "Premium":
-                    setPlanSelected({
-                        free: false,
-                        pro: false,
-                        premium: true
-                    });
-                    break;
-                case "Pro":
-                    setPlanSelected({
-                        free: false,
-                        pro: true,
-                        premium: false
-                    });
-                    break;
-                case "Free":
-                    setPlanSelected({
-                        free: true,
-                        pro: false,
-                        premium: false
-                    });
-                    break;
-                case "Startup":
-                    setPlanSelected({
-                        free: false,
-                        pro: false,
-                        premium: false
-                    });
-                    break;
-            }
+            const planId = response.data.PlanActual.id;
+            setPlanActualId(planId);
         });
-    }, []);
+    }
 
     const solicitudCambioPlan = async (planId) => {
         const user_object = reactLocalStorage.getObject('user');
-
+        const planSolicitud = contenido.find(plan => plan.id === planId);
         let bearer = "";
         if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
-            switch (planId) {
-                case 2:
-                    window.open('https://app.recurrente.com/s/conecta-guate/suscripcion-pro', '_blank', 'noopener,noreferrer');
-                    break;
-                case 3:
-                    window.open('https://app.recurrente.com/s/conecta-guate/suscripcion-premium', '_blank', 'noopener,noreferrer');
-                    break;
+            if (planSolicitud.contenido.linkPublico != null && planSolicitud.contenido.linkPublico != undefined && planSolicitud.contenido.linkPublico != "") {
+                window.open(planSolicitud.contenido.linkPublico, '_blank', 'noopener,noreferrer');
             }
             return;
         } else {
@@ -177,13 +207,8 @@ function PlanesInfo(props) {
                 autoDismiss: true,
                 autoDismissTimeout: 4000
             });
-            switch (planId) {
-                case 2:
-                    window.open('https://app.recurrente.com/s/conecta-guate/suscripcion-pro', '_blank', 'noopener,noreferrer');
-                    break;
-                case 3:
-                    window.open('https://app.recurrente.com/s/conecta-guate/suscripcion-premium', '_blank', 'noopener,noreferrer');
-                    break;
+            if (planSolicitud.contenido.linkPago != null && planSolicitud.contenido.linkPago != undefined && planSolicitud.contenido.linkPago != "") {
+                window.open(planSolicitud.contenido.linkPago, '_blank', 'noopener,noreferrer');
             }
 
         }, (error) => {
@@ -196,85 +221,26 @@ function PlanesInfo(props) {
 
     }
 
-    const onChangePlan = (name) => {
-        let plans;
-        switch (name) {
-            case 'free':
-                plans = {
-                    free: true,
-                    pro: false,
-                    premium: false
-                }
-                solicitudCambioPlan(1);
-                break;
-            case 'pro':
-                plans = {
-                    free: false,
-                    pro: true,
-                    premium: false
-                }
-                solicitudCambioPlan(2);
-                break;
-            case 'premium':
-                plans = {
-                    free: false,
-                    pro: false,
-                    premium: true
-                }
-                solicitudCambioPlan(3);
-                break;
-            default:
-                plans = {
-                    free: false,
-                    pro: false,
-                    premium: false
-                }
-        }
+    const onChangePlan = (id) => {
+        solicitudCambioPlan(id);
     }
 
     return (
         <>
+            <br />
             <CContainer className="planes-info">
-                {/* <CRow className="planes-title">
-                    <CCol>
-                        Cambiar plan
-                    </CCol>
-                </CRow> */}
-                <br />
-                <CardPlan
-                    img={images.free}
-                    subtitle={"Free"}
-                    description={plan.free}
-                    active={planSelected.free}
-                    changePlan={onChangePlan}
-                    plan={"free"}
-                    price={planPrice.free}
-                    actual={planSelected}
-                />
-                <br />
-                <CardPlan
-                    img={images.pro}
-                    subtitle={"Pro"}
-                    description={plan.pro}
-                    active={planSelected.pro}
-                    changePlan={onChangePlan}
-                    plan={"pro"}
-                    price={planPrice.pro}
-                    actual={planSelected}
-                />
-                <br />
-                <CardPlan
-                    img={images.premium}
-                    subtitle={"Premium"}
-                    description={plan.premium}
-                    active={planSelected.premium}
-                    changePlan={onChangePlan}
-                    plan={"premium"}
-                    recommended={true}
-                    price={planPrice.premium}
-                    actual={planSelected}
-                />
-                <br />
+                {
+                    contenido.map(data => {
+                        return (
+
+                            <CardPlan
+                                contenido={data}
+                                changePlan={onChangePlan}
+                                planActualId={planActualId}
+                            />
+                        )
+                    })
+                }
             </CContainer>
         </>
     )
@@ -284,7 +250,7 @@ function Dots(props) {
     const color = props.color === 'azul' || props.color === undefined ? '#63a0e3' : '#329a3b';
     return (
         <>
-            <svg color={color} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16" >
+            <svg color={color} xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-check-circle" viewBox="0 0 16 16" >
                 <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
                 <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" />
             </svg>
@@ -294,11 +260,11 @@ function Dots(props) {
 
 
 function DescriptionPlan(props) {
-    const descripcion = props.descripcion
-    const descripciones = descripcion.listado;
-    const tarifas = descripcion.tarifas;
-    const listadoDescripcion = descripciones.map((desc) => <li><Dots color="azul" /> {desc} </li>);
-    const listadoTarifas = tarifas.map((desc) => <li><Dots color="verde" /> {desc} </li>);
+    const descripcion = props.descripcion || "";
+    const incluye = props?.incluye || [];
+    const tarifas = props.tarifas || [];
+    const listadoIncluye = incluye.map((desc) => <li><Dots color="azul" /> {desc.descripcion}. </li>);
+    const listadoTarifas = tarifas.map((desc) => <li><Dots color="verde" /> Q{desc.precio} {desc.descripcion}. </li>);
     return (
         <>
             <CRow className="descripcion-title" >
@@ -306,7 +272,7 @@ function DescriptionPlan(props) {
             </CRow>
             <CRow className="descripcion-listado">
                 <ul className="listado-ul" style={{ listStyleType: "none", paddingLeft: "3px" }} >
-                    {listadoDescripcion}
+                    {listadoIncluye}
                 </ul>
             </CRow>
             <CRow className="tarifas">
@@ -324,9 +290,9 @@ function DescriptionPlan(props) {
 function CardPlan(props) {
     return (
         <>
-            <CRow className="recomendado-label" style={{ display: (props.recommended) ? 'block' : 'none' }}> Recomendado </CRow>
-            <CRow className="actual-plan" style={{ display: (props.active) ? 'block' : 'none' }}><CCol> Plan Actual</CCol> </CRow>
-            <CRow className={props.recommended ? "plan-card plan-card-recommended" : "plan-card"}>
+            <CRow className="recomendado-label" style={{ display: (props?.contenido?.id == 3) ? 'block' : 'none' }}> Recomendado </CRow>
+            <CRow className="actual-plan" style={{ display: (props?.contenido?.id === props.planActualId) ? 'block' : 'none' }}><CCol> Plan Actual</CCol> </CRow>
+            <CRow className={props?.contenido?.id == 3 ? "plan-card plan-card-recommended" : "plan-card"}>
                 <CCol>
                     <CCard className="plan-inner-card">
                         <CCardBody>
@@ -334,7 +300,7 @@ function CardPlan(props) {
                                 <CCol sm="3">
                                     <CRow>
                                         <CImg
-                                            src={props.img}
+                                            src={`https://ws.conectaguate.com/planes/contenido/${props?.contenido?.contenido?.icono}`}
                                             className="diamond-button"
                                             style={{
                                                 width: '200px',
@@ -345,12 +311,12 @@ function CardPlan(props) {
                                         />
                                     </CRow>
                                     <CRow className="subtitle-icon">
-                                        {props.subtitle}
+                                        {props?.contenido?.contenido?.nombre}
                                     </CRow>
                                 </CCol>
                                 <CCol sm="9">
                                     <div className='align-items-center description'>
-                                        <DescriptionPlan descripcion={props.description} />
+                                        <DescriptionPlan descripcion={props?.contenido?.contenido?.descripcion} tarifas={props?.contenido?.contenido?.tarifas} incluye={props?.contenido?.contenido?.detalles} />
                                     </div>
                                 </CCol>
                             </CRow>
@@ -363,7 +329,7 @@ function CardPlan(props) {
                                             <CRow className="left">
                                                 <CCol>
                                                     <span className="price">
-                                                        {props.price}
+                                                        Q{props?.contenido?.contenido?.precio}
                                                     </span><br />
                                                     <span className="month">
                                                         /mes
@@ -376,9 +342,9 @@ function CardPlan(props) {
                                                 <CButton
                                                     className="button-plan"
                                                     color="secondary"
-                                                    style={{ display: (props.active) ? 'none' : 'block' }}
+                                                    style={{ display: (props?.contenido?.id === props.planActualId) ? 'none' : 'block' }}
                                                     onClick={() => {
-                                                        props.changePlan(props.plan)
+                                                        props.changePlan(props?.contenido?.id)
                                                     }}
                                                 >
                                                     Seleccionar
@@ -389,12 +355,13 @@ function CardPlan(props) {
                                 </CCol>
                             </CRow>
                             <CRow className="descripcionTarifas" style={{ width: '100%', textAlign: 'center' }}>
-                                <legend style={{ fontSize: '1em' }}>*Tarifa aplica por paquete</legend>
+                                <legend style={{ fontSize: '1em' }}>{props?.contenido?.contenido?.leyenda !== null ? props?.contenido?.contenido?.leyenda : "*Tarifa aplica por paquete"}</legend>
                             </CRow>
                         </CCardBody>
                     </CCard>
                 </CCol>
             </CRow>
+            <br />
         </>
     )
 }

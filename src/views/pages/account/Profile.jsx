@@ -151,7 +151,6 @@ function Profile(props) {
             'https://ws.conectaguate.com/api/v1/site/verificado',
             config
         ).then(async (response) => {
-            console.log("response", response.data.verificacion);
             if (response.data.verificacion === null) {
                 addToast(`Verificacion Necesaria`, {
                     appearance: 'warning',

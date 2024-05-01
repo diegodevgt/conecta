@@ -9,6 +9,7 @@ const PlanesDisponibles = React.lazy(() => import('./views/pages/planes/Planes')
 const Coberturas = React.lazy(() => import('./views/pages/dashboard/Coberturas'))
 const Recomendaciones = React.lazy(() => import('./views/pages/dashboard/Recomendaciones'))
 const CrossSelling = React.lazy(() => import('./views/pages/dashboard/CrossSelling'))
+const SaldoPrepago = React.lazy(() => import('./views/pages/dashboard/SaldoPrepago'))
 
 
 const routes = [
@@ -19,11 +20,12 @@ const routes = [
   { path: '/cuenta/recibos', name: 'Recibos', component: Recibos },
   { path: '/creacion-pedido', name: 'Creacion de Pedido', component: CreacionPedido },
   { path: '/mis-envios', name: 'Mis Envios', component: MisEnvios },
+  { path: '/saldo-prepago', name: 'Saldo Prepago', component: SaldoPrepago },
   { path: '/mis-cupones', name: 'Mis Cupones', component: Cupones },
   { path: '/planes-disponibles', name: 'Planes Disponibles', component: PlanesDisponibles },
   { path: '/coberturas', name: 'Coberturas', component: Coberturas },
   { path: '/recomendaciones', name: 'Recomendaciones', component: Recomendaciones },
-  { path: '/cross-selling', name: 'Cross Selling', component: CrossSelling },
+  { path: '/cross-selling', name: 'Cross Selling', component: CrossSelling }
 ];
 
 export default routes;

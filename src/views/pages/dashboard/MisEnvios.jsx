@@ -6,7 +6,7 @@ import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import 'ag-grid-community/dist/styles/ag-theme-material.css';
 import { AgGridReact } from 'ag-grid-react';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import DatePicker from "react-datepicker";
 import { isMobile } from 'react-device-detect';
 import {
@@ -28,7 +28,7 @@ function MisEnvios(props) {
     const [number_rows, setNumberRows] = useState("20");
     const [aggrid, setAggrid] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [startDate, setStartDate] = useState(new Date());
+    const [startDate, setStartDate] = useState(new Date(new Date() - 7 * 24 * 60 * 60 * 1000));
     const [endDate, setEndDate] = useState(new Date());
     const [input_search, setInputSearch] = useState("");
     const [user, setUser] = useState({});
@@ -96,6 +96,10 @@ function MisEnvios(props) {
             {
                 headerName: 'Monto COD',
                 field: 'COD'
+            },
+            {
+                headerName: 'Orden Tienda',
+                field: 'pedido_tienda'
             },
             {
                 headerName: 'Estado',
@@ -196,7 +200,6 @@ function MisEnvios(props) {
             'https://ws.conectaguate.com/api/v1/site/verificado',
             config
         ).then(async (response) => {
-            console.log("response", response.data.verificacion);
             if (response.data.verificacion === null) {
                 addToast(`Verificacion Necesaria`, {
                     appearance: 'warning',
@@ -269,7 +272,7 @@ function MisEnvios(props) {
         setNumberRows(value);
     };
 
-    useEffect(() => {
+    const busquedaDatos = () => {
         if (transportes !== null && estatus !== null && tipos_de_pago !== null) {
             const user_object = reactLocalStorage.getObject('user');
             let bearer = "";
@@ -287,14 +290,27 @@ function MisEnvios(props) {
                 }
             };
 
+            const fechaInicio = startDate;
+            let dayIni = fechaInicio.getDate();
+            let monthIni = fechaInicio.getMonth() + 1;
+            let yearIni = fechaInicio.getFullYear();
+
+            const fechaFina = endDate;
+            let dayFin = fechaFina.getDate();
+            let monthFin = fechaFina.getMonth() + 1;
+            let yearFin = fechaFina.getFullYear();
+
+            const strFechaIni = `${yearIni}-${monthIni}-${dayIni}`;
+            const strFechaFin = `${yearFin}-${monthFin}-${dayFin}`;
+            const url = `https://ws.conectaguate.com/api/v1/site/user/pedidos?fechaInicio=${strFechaIni}&fechaFin=${strFechaFin}`
+
             axios.get(
-                'https://ws.conectaguate.com/api/v1/site/user/pedidos/',
+                url,
                 config
             ).then(async (response) => {
                 let data_arr = [];
                 let data = response.data['Data'];
                 let i = 1;
-                console.log(data);
                 data.forEach((elem) => {
                     if (elem.created_at) {
                         let date = new Date(elem.created_at);
@@ -324,7 +340,8 @@ function MisEnvios(props) {
                         date_created: elem.created_at,
                         fecha_entrega: "",
                         flg_cod: elem.flg_cod === 1 ? 'Si' : 'No',
-                        COD: elem.flg_cod === 1 ? `Q${elem.COD}` : "Q0.00"
+                        COD: elem.flg_cod === 1 ? `Q${elem.COD}` : "Q0.00",
+                        pedido_tienda: elem.pedido_tienda
                     };
                     data_arr.push(object);
                     i++;
@@ -337,24 +354,27 @@ function MisEnvios(props) {
                 })
             });
         }
+    };
+
+    useEffect(() => {
+        busquedaDatos();
     }, [transportes, estatus, tipos_de_pago]);
 
 
     const searchDate = () => {
-        let data = column_definitions.rowDataWithoutFilter;
-        let date_filter = data.filter((elem) => {
-            let start = new Date(startDate);
-            let end = new Date(endDate);
-            let date_filtered = new Date(elem.date_created);
-            if (date_filtered > start && date_filtered < end) {
-                return true;
-            }
-        })
-        setColumnDefinitions({
-            ...column_definitions,
-            rowData: date_filter
-        })
+        busquedaDatos()
     }
+
+    const excelStyles = useMemo(() => {
+        return [
+            {
+                id: 'multiline',
+                alignment: {
+                    wrapText: true,
+                },
+            },
+        ];
+    }, []);
 
 
     return (
@@ -540,6 +560,7 @@ function MisEnvios(props) {
                                     pagination={true}
                                     paginationPageSize={10}
                                     defaultColDef={column_definitions.defaultColDef}
+                                    excelStyles={excelStyles}
                                 />
                             </div>
                         </CCol>

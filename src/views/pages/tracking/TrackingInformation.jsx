@@ -145,7 +145,8 @@ function TrackingInformation(props) {
                             created_at: isoToDate(pedido.created_at),
                             updated_at: isoToDate(pedido.updated_at),
                             tipo_pago: pedido.tipo_pago != null ? tipos_de_pago[pedido.tipo_pago].nombre : "N/A",
-                            nombre_tienda: (res["Empresa"]) ? res["Empresa"] : ""
+                            nombre_tienda: (res["Empresa"]) ? res["Empresa"] : "",
+                            multimedia: res["multimedia"]
                         })
                     }
 
@@ -222,12 +223,12 @@ function TrackingInformation(props) {
                         classes.step3_img = "completed"
                         classes.step4_img = "completed-hold"
                     } else {
-                        classes.step1 = "stepper-item completed"
-                        classes.step2 = "stepper-item active"
+                        classes.step1 = "stepper-item "
+                        classes.step2 = "stepper-item "
                         classes.step3 = "stepper-item "
                         classes.step4 = "stepper-item "
-                        classes.step1_img = "completed"
-                        classes.step2_img = "active"
+                        classes.step1_img = "completed-hold"
+                        classes.step2_img = "completed-hold"
                         classes.step3_img = "completed-hold"
                         classes.step4_img = "completed-hold"
                     }
@@ -360,6 +361,22 @@ function TrackingInformation(props) {
                                         }
                                     )
                                 }
+                                <CRow className="p-2" style={{ display: info.multimedia.length > 0 ? 'block' : 'none' }}>
+                                    <CCol>
+                                        <CRow className="ml-4 d-flex flex-column">
+                                            <h6>Imágenes de referencia:</h6>
+                                            <ul>
+                                                {
+                                                    info.multimedia.map(
+                                                        (data, index) => {
+                                                            return <li><a href={data.urlExterna == 1 ? data.imagen : `https://ws.conectaguate.com/${data.imagen}`} target="_blank"> Referencia #{index + 1}</a></li>
+                                                        }
+                                                    )
+                                                }
+                                            </ul>
+                                        </CRow>
+                                    </CCol>
+                                </CRow>
                             </CCard>
                         </CCol>
                     </CRow>
@@ -413,7 +430,7 @@ function TrackingInformation(props) {
                             : null
                     }
 
-                </CContainer>
+                </CContainer >
             </> : null
     )
 }

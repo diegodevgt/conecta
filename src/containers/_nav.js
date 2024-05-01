@@ -16,6 +16,12 @@ const _nav = [
   },
   {
     _tag: 'CSidebarNavItem',
+    name: 'Saldo Prepago',
+    to: 'saldo-prepago',
+    icon: 'cil-credit-card'
+  },
+  {
+    _tag: 'CSidebarNavItem',
     name: 'Mis Cupones',
     to: '/mis-cupones',
     icon: 'cil-credit-card',

@@ -41,11 +41,13 @@ const CreacionPedido = () => {
         pobladoDestino: 0,
         pobladoOrigen: 0,
         cupon: "",
-        cuponId: null
+        cuponId: null,
+        pedido_tienda: null
     });
     const [poblado, setPoblado] = useState([]);
     const [pobladoOrigen, setPobladoOrigen] = useState([]);
     const [pobladoOrigenDefault, setPobladoOrigenDefault] = useState([]);
+    const [departamentoOrigenId, setDepartamentoOrigenId] = useState();
     const [user, setUser] = useState({});
     const [seguro_value, setSeguroValue] = useState(0);
     const [cupon_value, setCuponValue] = useState({
@@ -60,6 +62,7 @@ const CreacionPedido = () => {
         efectivo: false,
         transferencia: false,
         contra_entrega: false,
+        saldo_pago: false
     });
     const [payment, setPayment] = useState(false);
     const [pedido_creado, setPedidoCreado] = useState("");
@@ -88,6 +91,9 @@ const CreacionPedido = () => {
     });
     const [cotizacionValida, setCotizacionValida] = useState(true);
     const [blocking, setBlocking] = useState(false);
+    const [habilitarPagoSaldo, setHabilitarPagoSaldo] = useState(false);
+    const [configServ, setConfigServ] = useState();
+    const [saldoActual, setSaldoActual] = useState(0);
     // Fetch de departamentos
 
     useEffect(async () => {
@@ -105,6 +111,8 @@ const CreacionPedido = () => {
                 "Authorization": `Bearer ${user_object.token}`
             }
         };
+
+        setConfigServ(config);
 
         axios.get(
             'https://ws.conectaguate.com/api/v1/site/verificado',
@@ -153,7 +161,28 @@ const CreacionPedido = () => {
                 }
             })
         });
+
+        axios.get(
+            'https://ws.conectaguate.com/api/v1/site/planactual',
+            config
+        ).then(async (response) => {
+            if (response.data.ConfSaldo != undefined && response.data.ConfSaldo != null) {
+                setHabilitarPagoSaldo(true);
+            }
+        });
     }, []);
+
+    const calcularSaldoActual = () => {
+
+        axios.get(
+            'https://ws.conectaguate.com/api/v1/saldo',
+            configServ
+        ).then(async (response) => {
+            let result = response.data['Recargas'];
+            const saldoActual = result.reduce((acumulado, saldo) => { return acumulado + parseFloat(saldo.monto) }, 0);
+            setSaldoActual(saldoActual);
+        });
+    }
 
 
     const createOrder = async () => {
@@ -171,6 +200,8 @@ const CreacionPedido = () => {
             tipo_pa = 2
         } else if (cobro.transferencia) {
             tipo_pa = 4
+        } else if (cobro.saldo_pago) {
+            tipo_pa = 7
         }
 
         if (tipo_pa === 4 && files.file === null) {
@@ -180,6 +211,17 @@ const CreacionPedido = () => {
                 autoDismissTimeout: 10000
             });
             return;
+        }
+
+        if (tipo_pa === 7) {
+            if (parseFloat(costo_de_envio) > parseFloat(saldoActual)) {
+                addToast(`El saldo ${saldoActual}, es insuficiente para crear el pedido.`, {
+                    appearance: 'warning',
+                    autoDismiss: true,
+                    autoDismissTimeout: 10000
+                });
+                return;
+            }
         }
 
         order.pedido = {
@@ -206,8 +248,8 @@ const CreacionPedido = () => {
             costo_envio: costo_de_envio, // return api cotizar
             total: total_valor_declarado,
             cupon: data.cupon,
-            referencia_direccion: data.referencias_destinatario    // return api cotizar 
-
+            referencia_direccion: data.referencias_destinatario,    // return api cotizar 
+            pedido_tienda: data.pedido_tienda
         };
 
         let arr = [];
@@ -224,7 +266,7 @@ const CreacionPedido = () => {
         order.detalle = arr;
 
 
-        if (!cobro.contra_entrega && !cobro.efectivo && !cobro.transferencia) {
+        if (!cobro.contra_entrega && !cobro.efectivo && !cobro.transferencia && !cobro.saldo_pago) {
             addToast(`Debes seleccionar un metodo de pago`, {
                 appearance: 'warning',
                 autoDismiss: true,
@@ -534,6 +576,7 @@ const CreacionPedido = () => {
                 history.push('/cuenta/perfil');
                 return false;
             };
+            setDepartamentoOrigenId(response.data.usuario.departamentoId);
             axios({
                 method: 'get',
                 url: `https://ws.conectaguate.com/api/v1/site/poblado/dep/${response.data.usuario.departamentoId}/mun/${response.data.usuario.municipioId}`,
@@ -694,7 +737,7 @@ const CreacionPedido = () => {
         const { value } = e;
         let data_copy = JSON.parse(JSON.stringify(data));
         const pobladoSelected = pobladoOrigen.find(poblado => poblado.id === value);
-
+        setDepartamentoOrigenId(pobladoSelected.departamentoId);
         if (pobladoSelected.latitud !== null && pobladoSelected !== null && pobladoSelected.latitud !== 0 && pobladoSelected !== 0) {
             data_copy = {
                 ...data_copy,
@@ -952,6 +995,12 @@ const CreacionPedido = () => {
                                 blocking={blocking}
                                 setBlocking={setBlocking}
                                 payment={payment}
+                                habilitarPagoSaldo={habilitarPagoSaldo}
+                                calcularSaldoActual={calcularSaldoActual}
+                                saldoActual={saldoActual}
+                                cod_value={cod_value}
+                                pobladoOrigen={pobladoOrigen}
+                                departamentoOrigenId={departamentoOrigenId}
                             /> :
                             <Step4
                                 changeStep={setStep}
@@ -1287,6 +1336,18 @@ const Step1 = (props) => {
                                 </CCol>
                                 <CCol xs="12" md="9">
                                     <textarea rows="6" value={props.data.referencias_destinatario} onChange={props.handleChange} className="card-input" id="referencias_destinatario" placeholder="" required />
+                                </CCol>
+                            </CFormGroup>
+                        </CCol>
+                    </CRow>
+                    <CRow>
+                        <CCol xs="12">
+                            <CFormGroup row>
+                                <CCol xs="12" md="3">
+                                    <CLabel htmlFor="text-input">No. de orden externo:</CLabel>
+                                </CCol>
+                                <CCol xs="12" md="9">
+                                    <CInput rows="6" value={props.data.pedido_tienda} onChange={props.handleChange} className="card-input" id="pedido_tienda" placeholder="" required />
                                 </CCol>
                             </CFormGroup>
                         </CCol>
@@ -1938,6 +1999,7 @@ const Step3 = (props) => {
     const inputFile = useRef(null)
     const [valor, setValor] = useState(0);
     const { addToast } = useToasts();
+    const [deshabilitarPagoEfectivo, setDeshabilitarPagoEfectivo] = useState(false);
 
     const DEFAULT_MAX_FILE_SIZE_IN_BYTES = 500000;
     const KILO_BYTES_PER_BYTE = 1000;
@@ -1968,7 +2030,8 @@ const Step3 = (props) => {
                 props.setCobro({
                     transferencia: false,
                     contra_entrega: false,
-                    efectivo: bool_value
+                    efectivo: bool_value,
+                    saldo_pago: false
                 });
 
                 break
@@ -1976,16 +2039,29 @@ const Step3 = (props) => {
                 props.setCobro({
                     efectivo: false,
                     contra_entrega: false,
-                    transferencia: bool_value
+                    transferencia: bool_value,
+                    saldo_pago: false
                 });
                 break
             case 'contra-entrega-pago':
                 props.setCobro({
                     efectivo: false,
                     transferencia: false,
-                    contra_entrega: bool_value
+                    contra_entrega: bool_value,
+                    saldo_pago: false
                 });
                 break
+            case 'saldo-pago':
+                props.setCobro({
+                    efectivo: false,
+                    transferencia: false,
+                    contra_entrega: false,
+                    saldo_pago: bool_value
+                });
+                if (bool_value) {
+                    props.calcularSaldoActual();
+                }
+                break;
         }
     }
 
@@ -2035,14 +2111,20 @@ const Step3 = (props) => {
                 setValor(0);
             }
 
-            if (props.cobro.transferencia === false && props.cobro.contra_entrega === false && props.cobro.efectivo === false && props.payment === false) {
+            if (props.cobro.transferencia === false && props.cobro.contra_entrega === false && props.cobro.efectivo === false && props.cobro.saldo_pago === false && props.payment === false) {
                 props.setCobro({
                     transferencia: false,
                     efectivo: false,
-                    contra_entrega: true
+                    contra_entrega: true,
+                    saldo_pago: false
                 });
             }
         }
+        console.log(props.departamentoOrigenId);
+        if (props.departamentoOrigenId !== 7) {
+            setDeshabilitarPagoEfectivo(true);
+        }
+
     }, [])
 
     useEffect(() => {
@@ -2180,9 +2262,9 @@ const Step3 = (props) => {
                     <CRow className="pills-pago">
                         <CCol sm="3">
                             <CRow className="switch-container">
-                                <p className="text-pago">Efectivo al Recolectar</p>
+                                <p className="text-pago w-100">Efectivo al Recolectar</p>
                                 <label className="switch">
-                                    <input type="checkbox" onChange={handleChange} checked={props.cobro.efectivo} value={props.cobro.efectivo} id="efectivo-pago" disabled={props.cobro.contra_entrega ? true : false} />
+                                    <input type="checkbox" onChange={handleChange} checked={props.cobro.efectivo} value={props.cobro.efectivo} id="efectivo-pago" disabled={props.cobro.contra_entrega || deshabilitarPagoEfectivo ? true : false} />
                                     <div className="slider round">
                                         <span className="on">Si</span>
                                         <span className="off">no</span>
@@ -2190,9 +2272,9 @@ const Step3 = (props) => {
                                 </label>
                             </CRow>
                         </CCol>
-                        <CCol sm="5">
+                        <CCol sm="3">
                             <CRow className="switch-container">
-                                <p className="text-pago">Transferencia Bancaria</p>
+                                <p className="text-pago w-100">Transferencia Bancaria</p>
                                 <label className="switch">
                                     <input type="checkbox" onChange={handleChange} checked={props.cobro.transferencia} value={props.cobro.transferencia} id="transferencia-pago" disabled={props.cobro.contra_entrega ? true : false} />
                                     <div className="slider round">
@@ -2202,9 +2284,9 @@ const Step3 = (props) => {
                                 </label>
                             </CRow>
                         </CCol>
-                        <CCol sm="4">
+                        <CCol sm="3">
                             <CRow className="switch-container">
-                                <p className="text-pago">Pago contra entrega</p>
+                                <p className="text-pago w-100">Pago contra entrega</p>
                                 <label className="switch">
                                     <input type="checkbox" onChange={handleChange} checked={props.cobro.contra_entrega} value={props.cobro.contra_entrega} id="contra-entrega-pago" />
                                     <div className="slider round">
@@ -2212,6 +2294,24 @@ const Step3 = (props) => {
                                         <span className="off">no</span>
                                     </div>
                                 </label>
+                            </CRow>
+                        </CCol>
+                        <CCol sm="3">
+                            <CRow className="switch-container">
+                                <p className='text-pago w-100'>Saldo Pre pago</p>
+                                <label className='switch' disabled={!props.habilitarPagoSaldo}>
+                                    <input type="checkbox" onChange={handleChange} checked={props.cobro.saldo_pago} value={props.cobro.saldo_pago} id="saldo-pago" disabled={!props.habilitarPagoSaldo} />
+                                    <div className="slider round">
+                                        <span className="on">Si</span>
+                                        <span className="off">no</span>
+                                    </div>
+                                </label>
+                            </CRow>
+                            <CRow className='text-center' style={{ display: (!props.habilitarPagoSaldo) ? 'block' : 'none' }}>
+                                <p className='m-auto' style={{ fontSize: '0.9em' }}><strong>Pago con saldo no disponible para el plan actual.</strong></p>
+                            </CRow>
+                            <CRow className='text-center' style={{ display: (props.habilitarPagoSaldo && props.cobro.saldo_pago) ? 'block' : 'none' }} >
+                                <p className='m-auto' style={{ fontSize: '0.9em' }}><strong>Saldo Actual: Q{props.saldoActual}</strong></p>
                             </CRow>
                         </CCol>
                     </CRow>

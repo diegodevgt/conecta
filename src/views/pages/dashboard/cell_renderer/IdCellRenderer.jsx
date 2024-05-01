@@ -38,7 +38,7 @@ export default class IdCellRenderer extends Component {
                 background = '#9b59b6';
                 color = '#ffffff';
                 break;
-            case 'Transito':
+            case 'Tránsito':
                 background = '#f1c40f';
                 color = '#ffffff';
                 break;
