@@ -21,7 +21,7 @@ function PublicFooter(props) {
                             </CCol>
                             <CCol lg="4">
                                 <LinkFooter name="Bolsa de empleo" type="link" link="/bolsa-de-empleo" />
-                                <LinkFooter name="Comercios" type="link" external={true} link="https://yupiwow.com/store-listing/" />
+                                <LinkFooter name="Comercios" type="link" link="/#clientesSatisfechos" />
                                 <LinkFooter name="Contacto" type="link" link="/contacto" onClick={scrollContact()} />
                             </CCol>
                             <CCol lg="4">
@@ -32,32 +32,38 @@ function PublicFooter(props) {
                         </CRow>
                     </CCol>
                     <CCol lg="4">
-                        <CRow>
-                            <CCol lg="12" className="col-social-icons">
-                                <CImg
-                                    className="social-icons"
-                                    src="/img/icons/facebook.svg"
-                                    onClick={() => {
-                                        window.open('https://www.facebook.com/ConectaGuateOficial/', '_blank').focus();
-                                    }}
-                                />
-                                <CImg
-                                    className="social-icons"
-                                    src="/img/icons/instagram.svg"
-                                    onClick={() => {
-                                        window.open('https://www.instagram.com/conectagt_/', '_blank').focus();
-                                    }}
-                                />
-                                <CImg
-                                    className="social-icons"
-                                    src="/img/icons/whatsapp.svg"
-                                    onClick={() => {
-                                        window.open('https://api.whatsapp.com/send/?phone=50244793488&text=%C2%A1Quiero%20conectarme!%20%C2%BFMe%20podr%C3%ADan%20dar%20mas%20informaci%C3%B3n?', '_blank').focus();
-                                    }}
-                                />
+                        <CContainer>
+                            <CRow className="justify-content-evenly">
+                                <CCol lg="4" md="4" sm="4" xs="4" className="col-social-icons">
+                                    <CImg
+                                        className="social-icons w-100"
+                                        src="/img/icons/facebook.svg"
+                                        onClick={() => {
+                                            window.open('https://www.facebook.com/ConectaGuateOficial/', '_blank').focus();
+                                        }}
+                                    />
+                                </CCol>
+                                <CCol lg="4" md="4" sm="4" xs="4" className="col-social-icons">
+                                    <CImg
+                                        className="social-icons w-100"
+                                        src="/img/icons/instagram.svg"
+                                        onClick={() => {
+                                            window.open('https://www.instagram.com/conectagt_/', '_blank').focus();
+                                        }}
+                                    />
+                                </CCol>
+                                <CCol lg="4" md="4" sm="4" xs="4" className="col-social-icons">
+                                    <CImg
+                                        className="social-icons w-100"
+                                        src="/img/icons/whatsapp.svg"
+                                        onClick={() => {
+                                            window.open('https://api.whatsapp.com/send/?phone=50244793488&text=%C2%A1Quiero%20conectarme!%20%C2%BFMe%20podr%C3%ADan%20dar%20mas%20informaci%C3%B3n?', '_blank').focus();
+                                        }}
+                                    />
 
-                            </CCol>
-                        </CRow>
+                                </CCol>
+                            </CRow>
+                        </CContainer>
                     </CCol>
                 </CRow>
             </CContainer>

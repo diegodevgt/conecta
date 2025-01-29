@@ -1,1 +1,62 @@
 // Here you can add other styles
+#conatiner-uploadFiles{
+    
+    input[type="file"] {
+        margin: 20px 0;
+    }
+    
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border: none;
+        font-family: "Poppins", sans-serif;
+        text-align: center;
+    }
+    
+    th{
+        background-color: #153b75 !important;
+        color: #fff !important;
+        border: none;
+    }
+    td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+        border: none;
+    }
+    
+    th {
+        background-color: #f2f2f2;
+    }
+    
+    img {
+        max-width: 100px;
+        max-height: 100px;
+    }
+    
+    input[type="file"] {
+        margin: 20px 0;
+    }
+    
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+    
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    
+    th {
+        background-color: #f2f2f2;
+    }
+    
+    img {
+        max-width: 100px;
+        max-height: 100px;
+    }
+}

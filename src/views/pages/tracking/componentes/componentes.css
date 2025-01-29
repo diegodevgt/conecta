@@ -1,0 +1,176 @@
+.rowEvent {
+    /* border: 1px solid #dbdbdb;
+    border-radius: 15px; */
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-bottom: 2em;
+}
+
+.colIconEvent {
+    text-align: center;
+}
+
+.colIconEvent svg {
+    width: 75px !important;
+    height: 75px !important;
+    border: 1px solid #577cbd;
+    border-radius: 50%;
+}
+
+.colIconEvent svg:hover {
+    transform: scale(1.2);
+    background-color: #a1c4ff;
+    transition: all 300ms ease-in-out;
+}
+
+.colIconEvent .completado svg,
+.colIconEvent .completado .cls-1 {
+    background-color: #577cbd !important;
+    fill: #fff !important;
+}
+
+.colIconEvent .completado svg:hover .cls-1 {
+    fill: #fff !important;
+}
+
+.colIconEvent .pendiente svg:hover .cls-1 {
+    fill: #fff !important;
+}
+
+.colIconEvent .actual svg {
+    background-color: #c3cf1a !important;
+}
+
+.colIconEvent .cancelado {
+    background-color: #d40000 !important;
+    border-radius: 50% !important;
+    outline-width: 1px;
+    outline-offset: 0;
+    width: 75px !important;
+    height: 75px !important;
+    outline-color: #d40000;
+    outline-style: solid;
+    animation: animateOutlineCancelado 2s ease infinite;
+    margin: auto;
+}
+
+.colIconEvent .cancelado svg {
+    border: none;
+    width: 65px !important;
+    height: 65px !important;
+    border-radius: 0px !important;
+    padding: 10px;
+}
+
+.colIconEvent .cancelado svg:hover {
+    transform: none !important;
+    background-color: transparent !important;
+}
+
+
+.rowEvent.completado {
+    border-color: #577cbd;
+}
+
+.rowEvent.actual svg {
+    border-color: rgba(0, 130, 206, 0.75);
+    outline-width: 1px;
+    outline-offset: 0;
+    outline-color: rgba(0, 130, 206, 0.75);
+    outline-style: solid;
+    animation: animateOutline 2s ease infinite;
+}
+
+.colDataEvent {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+@keyframes animateOutlineCancelado {
+    0% {
+        outline-width: 1px;
+        outline-offset: 0;
+        outline-color: rgba(0, 130, 206, 0);
+    }
+
+    10% {
+        outline-color: rgba(206, 41, 0, 0.75);
+    }
+
+    /* The animation finishes at 50% */
+    50% {
+        outline-width: 7px;
+        outline-offset: 4px;
+        outline-color: rgba(0, 130, 206, 0);
+    }
+
+    100% {
+        outline-width: 7px;
+        outline-offset: 4px;
+        outline-color: rgba(102, 102, 102, 0);
+    }
+}
+
+
+@keyframes animateOutline {
+    0% {
+        outline-width: 1px;
+        outline-offset: 0;
+        outline-color: rgba(0, 130, 206, 0);
+    }
+
+    10% {
+        outline-color: rgba(0, 130, 206, 0.75);
+    }
+
+    /* The animation finishes at 50% */
+    50% {
+        outline-width: 7px;
+        outline-offset: 4px;
+        outline-color: rgba(0, 130, 206, 0);
+    }
+
+    100% {
+        outline-width: 7px;
+        outline-offset: 4px;
+        outline-color: rgba(102, 102, 102, 0);
+    }
+}
+
+@media only screen and (max-width: 991px) {
+
+    .col-4,
+    .col-8 {
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+    }
+}
+
+.containerSearch input{
+    width: fit-content;
+    margin-left: auto;
+}
+.containerSearch .row{
+    display: flex;
+    flex-direction: column;
+}
+
+
+.container-tracking-events .rowEvent.completado .colIconEvent div::after{
+    content: "";
+    display: block;
+    width: 2px;
+    height: calc(2rem + 50px);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #577cbd;
+}
+
+.container-tracking-events .colIconEvent:last-child div::after{
+    display: none !important;
+    content: none;
+}

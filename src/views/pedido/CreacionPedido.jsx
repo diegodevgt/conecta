@@ -14,8 +14,7 @@ import Select from 'react-select';
 import { useToasts } from 'react-toast-notifications';
 import { reactLocalStorage } from 'reactjs-localstorage';
 import { v4 as uuidv4 } from 'uuid';
-import BlockUi from 'react-block-ui';
-import 'react-block-ui/style.css';
+import PedidoUploadModal from './PedidoUploadModal';
 
 const CreacionPedido = () => {
     const history = useHistory();
@@ -56,6 +55,7 @@ const CreacionPedido = () => {
     });
     const [cod_value, setCodValue] = useState(0);
     const [costo_de_envio, setCostoDeEnvio] = useState(0);
+    const [soloCostoEnvio, setSoloCostoEnvio] = useState(0);
     const [consto_de_envio_text_cotiza, setCostoDeEnvioTextCotiza] = useState('');
     const [total_valor_declarado, setTotalValorDeclarado] = useState(0);
     const [cobro, setCobro] = useState({
@@ -184,7 +184,6 @@ const CreacionPedido = () => {
         });
     }
 
-
     const createOrder = async () => {
 
         const order = {};
@@ -214,7 +213,7 @@ const CreacionPedido = () => {
         }
 
         if (tipo_pa === 7) {
-            if (parseFloat(costo_de_envio) > parseFloat(saldoActual)) {
+            if (parseFloat(soloCostoEnvio) > parseFloat(saldoActual)) {
                 addToast(`El saldo ${saldoActual}, es insuficiente para crear el pedido.`, {
                     appearance: 'warning',
                     autoDismiss: true,
@@ -965,6 +964,7 @@ const CreacionPedido = () => {
                             setCobro={setCobro}
                             cotizar={cotizarOrder}
                             setCostoDeEnvio={setCostoDeEnvio}
+                            setSoloCostoEnvio={setSoloCostoEnvio}
                             tipos_de_transporte={tipos_de_transporte}
                             costo_de_envio={costo_de_envio}
                             setCostoDeEnvioTextCotiza={setCostoDeEnvioTextCotiza}
@@ -990,6 +990,7 @@ const CreacionPedido = () => {
                                 createOrder={createOrder}
                                 setFiles={setFiles}
                                 costo_de_envio={costo_de_envio}
+                                soloCostoEnvio={soloCostoEnvio}
                                 files={files}
                                 consto_de_envio_text_cotiza={consto_de_envio_text_cotiza}
                                 blocking={blocking}
@@ -1590,7 +1591,13 @@ const Step2 = (props) => {
             props.setCostoDeEnvio(response['Costo_envio'].toFixed(2));
         }
 
-        costoDeEnvio(response['Costo_envio']);
+        if (response.Data.costoEnvio) {
+            let costoEnvioTotal = (response.Costo_envio != null && response.Costo_envio != undefined)  ? (response.Costo_envio).toFixed(2) : 0;
+            let cobrosCODExtras = (response.Data.cobroExtra != null && response.Data.cobroExtra != undefined)  ? (response.Data.cobroExtra).toFixed(2) : 0;
+            props.setSoloCostoEnvio(costoEnvioTotal - cobrosCODExtras);
+        }
+
+        costoDeEnvio(response['Costo_envio'].toFixed(2));
 
         if (response['Data']) {
             props.setCotizacionPedidoData({
@@ -2030,7 +2037,7 @@ const Step3 = (props) => {
                 props.setCobro({
                     transferencia: false,
                     contra_entrega: false,
-                    efectivo: bool_value,
+                    efectivo: bool_value === "" ? true : bool_value,
                     saldo_pago: false
                 });
 
@@ -2039,7 +2046,7 @@ const Step3 = (props) => {
                 props.setCobro({
                     efectivo: false,
                     contra_entrega: false,
-                    transferencia: bool_value,
+                    transferencia: bool_value === "" ? true : bool_value,
                     saldo_pago: false
                 });
                 break
@@ -2047,7 +2054,7 @@ const Step3 = (props) => {
                 props.setCobro({
                     efectivo: false,
                     transferencia: false,
-                    contra_entrega: bool_value,
+                    contra_entrega: bool_value === "" ? true : bool_value,
                     saldo_pago: false
                 });
                 break
@@ -2056,13 +2063,12 @@ const Step3 = (props) => {
                     efectivo: false,
                     transferencia: false,
                     contra_entrega: false,
-                    saldo_pago: bool_value
+                    saldo_pago: bool_value === "" ? true : bool_value
                 });
-                if (bool_value) {
-                    props.calcularSaldoActual();
-                }
+
                 break;
         }
+        props.calcularSaldoActual();
     }
 
     const nextStep = () => {
@@ -2120,7 +2126,6 @@ const Step3 = (props) => {
                 });
             }
         }
-        console.log(props.departamentoOrigenId);
         if (props.departamentoOrigenId !== 7) {
             setDeshabilitarPagoEfectivo(true);
         }
@@ -2367,10 +2372,8 @@ const Step3 = (props) => {
                             </CRow>
                         </CCol>
                     </CRow>
-
                 </CCardBody>
             </CCard>
-
             <div className="creacion-pedido-button-envio">
                 <CRow className="mb-4">
                     <CCol sm="4">
@@ -2408,7 +2411,6 @@ const Step3 = (props) => {
 
                             <label className="next" style={{ fontSize: '1.3rem' }}>
                                 {props.blocking ? 'Cargando...' : 'Finalizar Orden'}
-                                <BlockUi blocking={props.blocking} />
                             </label>
 
                             <button
@@ -2437,6 +2439,7 @@ const Step4 = (props) => {
     const [url, setUrl] = useState("");
     const { addToast } = useToasts();
     const history = useHistory();
+    const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
         let value = 0.00;
@@ -2455,6 +2458,10 @@ const Step4 = (props) => {
         let new_url = `${baseUrl}#/tracking/${props.pedido}`;
         setUrl(new_url);
     }, [])
+
+    const toggleModal = () => {
+        setShowModal(!showModal);
+    };
 
 
     useEffect(() => {
@@ -2493,14 +2500,29 @@ const Step4 = (props) => {
                     Favor descarga esta guía y pegala en tu paquete
                 </CRow>
                 <br />
-                <CRow className="subtitle-container">
-                    <CButton block color="primary"
-                        onClick={() => {
-                            props.descargarGuia(props.pedido);
-                        }}
-                    >
-                        Descargar guía
-                    </CButton>
+                <CRow className="subtitle-container d-flex">
+                    <CCol sm="4" className="mb-3">
+                        <CButton className="w-100" style={{ backgroundColor: '#153b75', color: 'white' }} onClick={toggleModal}>Subir Documentos</CButton>
+                    </CCol>
+                    <CCol sm="4" className="mb-3">
+                        <CButton block color="primary" className="w-100"
+                            onClick={() => {
+                                props.descargarGuia(props.pedido);
+                            }}
+                        >
+                            Descargar guía
+                        </CButton>
+                    </CCol>
+                    <CCol sm="4" className="mb-3">
+                        <CButton block className="w-100" style={{ backgroundColor: '#e9f114', color: '#153b75' }}
+                            onClick={() => {
+                                window.location.reload(false);
+                            }}
+                        >
+                            Realizar otro pedido
+                        </CButton>
+                    </CCol>
+
                 </CRow>
                 <br />
                 <CRow className="subtitle-container-info">
@@ -2535,14 +2557,11 @@ const Step4 = (props) => {
                     </CCol>
                 </CRow>
                 <br />
-                <CRow className="button-again">
-                    <CButton block style={{ backgroundColor: '#e9f114', color: '#153b75' }}
-                        onClick={() => {
-                            window.location.reload(false);
-                        }}
-                    >Realizar más envíos</CButton>
-                </CRow>
-                <br />
+                <PedidoUploadModal
+                    pedidoId={props.pedido_id}
+                    showModal={showModal}
+                    toggleModal={toggleModal}
+                />
             </CContainer>
         </>
     )

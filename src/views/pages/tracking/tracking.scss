@@ -1,0 +1,147 @@
+.tracking-info {
+
+    .labelsEntrega,
+    h4 {
+        color: #153b75 !important;
+        text-transform: initial;
+    }
+
+    /* Animacion button extras */
+    .button-box {
+        max-width: 300px;
+        align-items: center;
+        justify-content: center;
+        margin: auto;
+        margin-left: 0px;
+        display: grid;
+        margin-top: 10px !important;
+    }
+
+    img {
+        margin-left: auto;
+        transition: 0.5s;
+        width: 5.5rem;
+        height: 5.5rem;
+    }
+    img.sm {
+        margin-left: auto;
+        transition: 0.5s;
+        width: 4rem;
+        height: 4rem;
+        margin-top: 1rem;
+    }
+
+    .titulo {
+        font-weight: bold;
+        margin-top: 1rem;
+        margin-left: 2rem;
+        transition: 0.5s;
+        line-height: 2rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .description {
+        position: absolute;
+        margin-top: 1.4rem;
+        font-weight: bold;
+        line-height: 2rem;
+        font-size: 1.5rem;
+        font-style: italic;
+        transition: 0.5s;
+        opacity: 0%;
+        margin-left: 2rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Button 2 */
+    .button2 {
+        height: 100px;
+        width: 300px;
+        display: flex;
+        border-radius: 15px;
+        transition: 0.5s;
+        font-family: "Montserrat", sans-serif;
+        font-size: 1.5rem;
+        background-image: linear-gradient(to right top,
+                #577cbd,
+                #5986d4,
+                #4c7dd2,
+                #507fd0,
+                #5380cf,
+                #3d7ae4,
+                #3578eb,
+                #3a7ff6,
+                #1168fe,
+                #1367f8,
+                #0b64fd,
+                #005eff);
+        color: white;
+        animation: blurr2 2s;
+        animation-iteration-count: infinite;
+        outline: none;
+        cursor: pointer;
+        border: none;
+    }
+
+    .button2:hover .titulo {
+        transform: translateX(300px);
+        animation: fade 0.5s;
+        opacity: 0%;
+    }
+
+    .button2:hover img {
+        transform: translateX(-200px);
+    }
+
+    .button2:hover .description {
+        transform: translateX(70px);
+        opacity: 100%;
+    }
+
+    @keyframes blurr2 {
+
+        0%,
+        100% {
+            box-shadow: 0 0 10px var(--btn2);
+        }
+
+        50% {
+            box-shadow: 0 0 36px var(--btn2);
+        }
+    }
+
+    .watermark {
+        text-align: center;
+        color: white;
+    }
+
+    .watermark a {
+        color: #8081cf;
+    }
+
+    .containerSearch{
+        max-width: 400px;
+        margin-left: auto;
+        input{
+            border: 1px solid #577cbd;
+            color: black;
+            text-align: right;
+        }
+    }
+
+    .completado svg::after{
+        border-bottom: 2px solid #153b75;
+        content: "";
+        left: 50%;
+        position: absolute;
+        top: 35px;
+        width: 100%;
+        z-index: 10;
+    }
+
+    .containerTracking{
+        display: flex;
+        flex-direction: column;
+        
+    }
+}

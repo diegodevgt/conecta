@@ -31,7 +31,7 @@ function Packs(props) {
                     <CCol sm="4">
                         <CImg
                             className={"pack"}
-                            src={"img/packs/ciudad.png"}
+                            src={"img/icons/little.png"}
                             style={{
                                 // width:'200px', 
                                 display: 'block',
@@ -39,14 +39,14 @@ function Packs(props) {
                                 marginRight: 'auto'
                             }}
                             onClick={() => {
-                                window.open('https://app.recurrente.com/s/conecta-guate/pack-ciudad', '_blank').focus();
+                                window.open('https://app.recurrente.com/s/conecta-guate/little-pack', '_blank').focus();
                             }}
                         />
                     </CCol>
                     <CCol sm="4">
                         <CImg
                             className={"pack"}
-                            src="img/packs/aledanos.png"
+                            src="img/icons/economy.png"
                             style={{
                                 // width:'200px', 
                                 display: 'block',
@@ -54,14 +54,14 @@ function Packs(props) {
                                 marginRight: 'auto'
                             }}
                             onClick={() => {
-                                window.open('https://app.recurrente.com/s/conecta-guate/pack-aledanos', '_blank').focus();
+                                window.open('https://app.recurrente.com/s/conecta-guate/economy-pack', '_blank').focus();
                             }}
                         />
                     </CCol>
                     <CCol sm="4">
                         <CImg
                             className={"pack"}
-                            src="img/packs/interior.png"
+                            src="img/icons/advance.png"
                             style={{
                                 // width:'200px', 
                                 display: 'block',
@@ -69,7 +69,7 @@ function Packs(props) {
                                 marginRight: 'auto'
                             }}
                             onClick={() => {
-                                window.open('https://app.recurrente.com/s/conecta-guate/pack-interior', '_blank').focus();
+                                window.open('https://app.recurrente.com/s/conecta-guate/advance-pack', '_blank').focus();
                             }}
                         />
                     </CCol>

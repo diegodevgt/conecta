@@ -4,24 +4,10 @@ import {
   CHeader,
   CToggler,
   CHeaderBrand,
-  CHeaderNav,
-  CHeaderNavItem,
-  CHeaderNavLink,
-  CSubheader,
-  CBreadcrumbRouter,
-  CLink
+  CHeaderNav
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
+import { TheHeaderDropdown } from './index';
 
-// routes config
-import routes from '../routes'
-
-import { 
-  TheHeaderDropdown,
-  TheHeaderDropdownMssg,
-  TheHeaderDropdownNotif,
-  TheHeaderDropdownTasks
-}  from './index'
 
 const TheHeader = () => {
   const dispatch = useDispatch()
@@ -51,22 +37,10 @@ const TheHeader = () => {
       />
       <CHeaderBrand className="mx-auto d-lg-none" to="/creacion-pedido">        
       </CHeaderBrand>
-
-      <CHeaderNav className="d-md-down-none mr-auto">
-        <CHeaderNavItem className="px-3" >
-          {/* <CHeaderNavLink to="/dashboard">Dashboard</CHeaderNavLink> */}
-        </CHeaderNavItem>
-      </CHeaderNav>
  
-
-
-      <CHeaderNav className="px-2">
-        {/* <TheHeaderDropdownNotif/> */}
-        {/* <TheHeaderDropdownTasks/> */}
-        {/* <TheHeaderDropdownMssg/> */}
+      <CHeaderNav className="px-2 ml-auto">
         <TheHeaderDropdown/>
       </CHeaderNav>
-
     
     </CHeader>
   )

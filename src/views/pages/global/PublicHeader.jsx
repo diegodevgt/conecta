@@ -30,7 +30,6 @@ function PublicHeader(props) {
           }}
           inNavbar onClick={() => setIsOpen(!isOpen)} />
         <CNavbarBrand onClick={(e) => {
-          e.preventdefault()
           history.push('/');
         }}>
           <CImg
@@ -45,7 +44,7 @@ function PublicHeader(props) {
           </CNavbarNav>
           <CNavbarNav className="ml-auto home-header-options" >
             <CNavLink className="home-header-options-item" to={"/"}>Inicio</CNavLink>
-            <CNavLink className="home-header-options-item" onClick={() => { window.open('https://yupiwow.com/store-listing/', '_blank').focus(); }}>Comercio</CNavLink>
+            <CNavLink className="home-header-options-item" to={"/#clientesSatisfechos"}>Comercio</CNavLink>
             <CNavLink className="home-header-options-item" to={"/planes"}>Planes</CNavLink>
             <CNavLink className="home-header-options-cta" to={"/login"}>Hacer un envío</CNavLink>
             <CNavLink className="home-header-options-account" to={"/register"}>

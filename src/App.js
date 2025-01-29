@@ -26,7 +26,7 @@ const BolsaDeEmpleo = React.lazy(() => import('./views/pages/bolsa_empleo/BolsaD
 const Planes = React.lazy(() => import('./views/pages/planes/Planes'))
 const PlanCambio = React.lazy(() => import('./views/pages/planes/PlanCambio'))
 const Faqs = React.lazy(() => import('./views/pages/faqs/Faqs'))
-
+const ConfirmacionDatos = React.lazy(() => import('./views/pages/ConfirmacionDatos/ConfirmacionDatos'))
 class App extends Component {
 
   render() {
@@ -49,17 +49,12 @@ class App extends Component {
               <Route exact path="/plan-cambio" name="Plan Cambio" render={props => <PlanCambio {...props} />} />
               <Route exact path="/tracking/:id" name="Tracking Page" render={props => <Tracking {...props} />} />
               <Route exact path="/faqs" name="Faqs" render={props => <Faqs {...props} />} />
-              <Route path="/creacion-pedido" name="Creacion de Pedido" render={props => <TheLayout {...props} />} />
-              <Route path="/cuenta/perfil" name="Perfil" render={props => <TheLayout {...props} />} />
-              <Route path="/cuenta/password" name="Password" render={props => <TheLayout {...props} />} />
-              <Route path="/cuenta/recibos" name="Recibos" render={props => <TheLayout {...props} />} />
-              <Route path="/mis-envios" name="Mis Envios" render={props => <TheLayout {...props} />} />
-              <Route path="/saldo-prepago" name="Saldo Prepago" render={props => <TheLayout {...props} />} />
-              <Route path="/mis-cupones" name="Mis Cupones" render={props => <TheLayout {...props} />} />
-              <Route path="/planes-disponibles" name="Planes Disponibles" render={props => <TheLayout {...props} />} />
-              <Route path="/coberturas" name="Coberturas" render={props => <TheLayout {...props} />} />
-              <Route path="/recomendaciones" name="Recomendaciones" render={props => <TheLayout {...props} />} />
-              <Route path="/cross-selling" name="Cross Selling" render={props => <TheLayout {...props} />} />
+              <Route exact path="/confirmacion-datos/:id" name="Confirmación de Datos" render={props => <ConfirmacionDatos {...props} /> } />
+              <Redirect exact from='/nosotros' to='/' />
+
+              {/* Rutas dentro de TheLayout */}
+              <Route path="/" name="Main Layout" render={(props) => <TheLayout {...props} />} />
+              {/* Default Redirect to Home */}
               <Redirect from='*' to='/' />
             </Switch>
           </React.Suspense>

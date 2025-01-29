@@ -9,14 +9,14 @@ import {
 
 
 function Clients(props) {
-    let row_clients_1 = ['logo-aquacity','logo-ciclon','logo-foodservice','logo-minegocioenlinea'];
-    let row_clients_2 = ['logo-pcr','logo-regus','logo-universales','logo-worx'];
-    
+    let row_clients_1 = ['logo-aquacity','logo-ciclon','logo-foodservice','logo-robo'];
+    let row_clients_2 = ['logo-pcr','logo-impulso','logo-universales','logo-worx'];
+    let row_clients_3 = [];
    
     
     return (
         <>
-            <CContainer className="home-clients" >
+            <CContainer className="home-clients" id='clientesSatisfechos'>
                 <CRow className="align-items-center">
                     <CCol>
                         <AnimationOnScroll animateOnce={true} animateIn="animate__fadeIn" duration={1}>
@@ -34,6 +34,11 @@ function Clients(props) {
                     </CRow>
                     <CRow className="align-items-center row-clients">
                         {row_clients_2.map((elem)=>{
+                            return <SingleClient key={elem} img={elem}/>
+                        })}
+                    </CRow>
+                    <CRow className="align-items-center row-clients">
+                        {row_clients_3.map((elem)=>{
                             return <SingleClient key={elem} img={elem}/>
                         })}
                     </CRow>
@@ -65,14 +70,17 @@ const SingleClient = (props) => {
     }
     return (
         <CCol sm="3" className="container-client-img">
-            <CImg fluid
-                className="client-img"
-                src={`img/clients/${props.img}.png`}
-                onClick={(e)=>{
-                    e.preventdefault()
-                    window.open(links[props.img], '_blank').focus();
-                }}
-            />
+            { props.img != "" && (
+                <CImg fluid
+                    className="client-img"
+                    src={`img/clients/${props.img}.png`}
+                    onClick={(e)=>{
+                        e.preventdefault()
+                        window.open(links[props.img], '_blank').focus();
+                    }}
+                />
+                )
+            }
         </CCol>
     )
 }

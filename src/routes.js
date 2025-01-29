@@ -10,7 +10,7 @@ const Coberturas = React.lazy(() => import('./views/pages/dashboard/Coberturas')
 const Recomendaciones = React.lazy(() => import('./views/pages/dashboard/Recomendaciones'))
 const CrossSelling = React.lazy(() => import('./views/pages/dashboard/CrossSelling'))
 const SaldoPrepago = React.lazy(() => import('./views/pages/dashboard/SaldoPrepago'))
-
+const PedidosExcel = React.lazy(() => import('./views/pages/dashboard/PedidosExcel'))
 
 const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -25,7 +25,8 @@ const routes = [
   { path: '/planes-disponibles', name: 'Planes Disponibles', component: PlanesDisponibles },
   { path: '/coberturas', name: 'Coberturas', component: Coberturas },
   { path: '/recomendaciones', name: 'Recomendaciones', component: Recomendaciones },
-  { path: '/cross-selling', name: 'Cross Selling', component: CrossSelling }
+  { path: '/cross-selling', name: 'Cross Selling', component: CrossSelling },
+  { path: '/pedidos-excel', name: 'Carga Masiva', component: PedidosExcel },
 ];
 
 export default routes;

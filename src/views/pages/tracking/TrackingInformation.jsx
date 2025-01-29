@@ -454,11 +454,14 @@ const RowData = (props) => {
 
 
 const FullRowData = (props) => {
+    if (props.data[props.data_key] === null) {
+        return null;
+    }
     return (
         <CRow className="p-2">
             <CCol>
                 <CRow className="ml-4">
-                    <h6 className="key-info">{props.info_keys[props.data_key]}: </h6> <h6 className="value-info">{props.data[props.data_key]}</h6>
+                    <h6 className="key-info">{props.info_keys[props.data_key]}: </h6> <h6 className="value-info" dangerouslySetInnerHTML={{ __html: props.data[props.data_key].replace(/\n/g, '<br />') }}></h6>
                 </CRow>
             </CCol>
         </CRow>

@@ -1,12 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react'
 import {
-  CBadge,
   CDropdown,
   CDropdownItem,
   CDropdownMenu,
-  CDropdownToggle,
-  CImg
+  CDropdownToggle
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { useHistory } from "react-router-dom";
@@ -20,32 +18,28 @@ const TheHeaderDropdown = () => {
   const history = useHistory();
   const { addToast } = useToasts();
 
-  useEffect(async () => {
-    /* eslint-disable no-alert, no-console */
-    const user_object = reactLocalStorage.getObject('user');
-
-    if (user_object === 'undefined' || user_object === undefined || user_object === null || Object.keys(user_object).length === 0) {
-      setUser({});
-      history.push('/login');
-      addToast("Sesión terminada", {
-        appearance: 'error',
-        autoDismiss: true,
-        autoDismissTimeout: 3000
-      });
-    } else {
-      if (!('name' in user_object)) {
-
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user_object = reactLocalStorage.getObject('user');
+  
+      if (!user_object || Object.keys(user_object).length === 0) {
+        setUser({});
+        history.push('/login');
+        addToast("Sesión terminada", {
+          appearance: 'error',
+          autoDismiss: true,
+          autoDismissTimeout: 3000
+        });
+      } else if (!('name' in user_object)) {
         const data_api = await authUser(user_object.token);
-
+  
         if (data_api.valid) {
-          setUser({
+          const updatedUser = {
             ...user_object,
-            name: data_api.response.data.name
-          });
-          reactLocalStorage.setObject('user', {
-            ...user_object,
-            name: data_api.response.data.name
-          });
+            name: data_api.response.data.name,
+          };
+          setUser(updatedUser);
+          reactLocalStorage.setObject('user', updatedUser);
         } else {
           reactLocalStorage.remove('user');
           setUser({});
@@ -54,22 +48,16 @@ const TheHeaderDropdown = () => {
             autoDismiss: true,
             autoDismissTimeout: 3000
           });
-          history.push({
-            pathname: `/login`
-          });
-
+          history.push('/login');
         }
-
       } else {
-        setUser({
-          ...user_object
-        });
+        setUser({ ...user_object });
       }
-    }
-    // eslint-disable-next-line no-console
-  }, [])
-
-
+    };
+  
+    fetchUserData();
+  }, [addToast, history]);  
+  
   useEffect(() => {
     if ('name' in user) {
       setLoading(true);

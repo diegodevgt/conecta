@@ -18,8 +18,12 @@ import { reactLocalStorage } from 'reactjs-localstorage';
 import ButtonCellRenderer from './cell_renderer/ButtonCellRenderer';
 import DescargarCellRenderer from './cell_renderer/DescargarCellRenderer';
 import IdCellRenderer from './cell_renderer/IdCellRenderer';
-import { element } from 'prop-types';
 import { useToasts } from 'react-toast-notifications';
+import PedidoUploadModal from '../../pedido/PedidoUploadModal';
+import BtnCellRendererModal from './cell_renderer/BtnCellRendererModal';
+
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 function MisEnvios(props) {
     const size = useWindowSize();
@@ -31,11 +35,21 @@ function MisEnvios(props) {
     const [startDate, setStartDate] = useState(new Date(new Date() - 7 * 24 * 60 * 60 * 1000));
     const [endDate, setEndDate] = useState(new Date());
     const [input_search, setInputSearch] = useState("");
-    const [user, setUser] = useState({});
     const [transportes, setTransportes] = useState(null);
     const [estatus, setEstatus] = useState(null);
     const [tipos_de_pago, setTiposDePago] = useState(null);
     const FileDownload = require('js-file-download');
+
+    const [showModal, setShowModal] = useState(false);
+    const [selectedPedido, setSelectedPedido] = useState(null);
+    const [selectedEstado, setSelectedEstado] = useState(null);
+
+    const mostrarModal = (pedidoId, estado) => {
+        setSelectedPedido(pedidoId);
+        setSelectedEstado(estado);
+        setShowModal(!showModal);
+    }
+
     const descargarGuia = (key) => {
         const user_object = reactLocalStorage.getObject('user');
         let bearer = "";
@@ -58,7 +72,7 @@ function MisEnvios(props) {
             FileDownload(response.data, `${key}.pdf`);
         });
     }
-
+    const [dataMisEnvios, setDataMisEnvios] = useState([]);
     const [column_definitions, setColumnDefinitions] = useState({
         columnDefs: [
             {
@@ -102,6 +116,10 @@ function MisEnvios(props) {
                 field: 'pedido_tienda'
             },
             {
+                headerName: 'Total',
+                field: 'total'
+            },
+            {
                 headerName: 'Estado',
                 field: 'estado',
                 cellRenderer: 'idBtnCellRenderer',
@@ -133,18 +151,26 @@ function MisEnvios(props) {
                         window.open(url, '_blank').focus();
                     },
                 },
+            },
+            {
+                headerName: 'Documentos',
+                field: 'pedido',
+                cellRenderer: 'BtnCellRendererModal',
+                cellRendererParams: {
+                    clicked: function (pedido, estado) {
+                        mostrarModal(pedido, estado);
+                    },
+                    estado: 'estado'
+                }
             }
+
         ],
         rowData: [],
         defaultColDef: {
             resizable: true,
+            minWidth: 150,
         }
     });
-
-    function randomDate(start, end) {
-        return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-    }
-
 
     // Hook
     function useWindowSize() {
@@ -246,7 +272,7 @@ function MisEnvios(props) {
     }, []);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { value } = e.target;
         setInputSearch(value);
         onFilterTextBoxChanged();
     }
@@ -262,8 +288,62 @@ function MisEnvios(props) {
         aggrid.api.setQuickFilter(document.getElementById('guia').value);
     }
 
+    const getCurrentDate = () => {
+        const today = new Date();
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0'); // Los meses son 0-11, por eso sumamos 1
+        const year = today.getFullYear();
+
+        return `${day}/${month}/${year}`;
+    };
+
+
+    const exportToExcel = () => {
+        // Crea un libro de trabajo y una hoja de trabajo
+        const fileName = `Mis envios - ${getCurrentDate()}`;
+        const data = dataMisEnvios;
+        if (data.length == 0 || data == null || data == undefined) {
+            addToast(`No hay registros para exportar.`, {
+                appearance: 'warning',
+                autoDismiss: true,
+                autoDismissTimeout: 4000
+            });
+            return;
+        }
+        const nuevoFormato = data.map((d) => {
+            return {
+                'Numero Orden': d.pedido,
+                'Destinatario': d.destinatario,
+                'Destino': d.destino,
+                'Localidad Origen': d.localidad_org,
+                'Localidad Destino': d.localidad_dest,
+                'Tipo Envio': d.tipo_de_envio,
+                'Estado': d.estado,
+                'Guia': d.key,
+                'Fecha': d.fecha_creacion,
+                'COD': d.flg_cod,
+                'Valor COD': d.COD,
+                'Pedido Tienda': d.pedido_tienda,
+                'Total': d.total,
+            }
+        });
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(nuevoFormato);
+
+        // Añade la hoja al libro
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
+
+        // Genera el archivo Excel
+        const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+
+        // Usa file-saver para guardarlo
+        const excelFile = new Blob([excelBuffer], { type: "application/octet-stream" });
+        saveAs(excelFile, `${fileName}.xlsx`);
+    };
+
+
     const onBtnExport = () => {
-        aggrid.api.exportDataAsCsv();
+        exportToExcel();
     };
 
     const onPageSizeChanged = () => {
@@ -341,17 +421,19 @@ function MisEnvios(props) {
                         fecha_entrega: "",
                         flg_cod: elem.flg_cod === 1 ? 'Si' : 'No',
                         COD: elem.flg_cod === 1 ? `Q${elem.COD}` : "Q0.00",
-                        pedido_tienda: elem.pedido_tienda
+                        pedido_tienda: elem.pedido_tienda,
+                        total: `Q${elem.total}`
                     };
                     data_arr.push(object);
                     i++;
-                })
+                });
 
                 setColumnDefinitions({
                     ...column_definitions,
                     rowData: data_arr,
                     rowDataWithoutFilter: data_arr
-                })
+                });
+                setDataMisEnvios(data_arr);
             });
         }
     };
@@ -555,7 +637,8 @@ function MisEnvios(props) {
                                     frameworkComponents={{
                                         btnCellRenderer: ButtonCellRenderer,
                                         btnCellRendererDescargar: DescargarCellRenderer,
-                                        idBtnCellRenderer: IdCellRenderer
+                                        idBtnCellRenderer: IdCellRenderer,
+                                        BtnCellRendererModal: BtnCellRendererModal
                                     }}
                                     pagination={true}
                                     paginationPageSize={10}
@@ -565,6 +648,12 @@ function MisEnvios(props) {
                             </div>
                         </CCol>
                     </CRow>
+                    <PedidoUploadModal
+                        pedidoId={selectedPedido}
+                        showModal={showModal}
+                        toggleModal={mostrarModal}
+                        soloMosrtrar={selectedEstado != 'Recibido'}
+                    />
                 </div>
             </> : <></>
     )

@@ -12,6 +12,13 @@ import { icons } from './assets/icons'
 
 import { Provider } from 'react-redux'
 import store from './store'
+import TagManager from 'react-gtm-module';
+
+// Inicializar Tag Manager
+const tagManagerArgs = {
+  gtmId: 'GTM-MQVGBC74', // Reemplaza con tu ID de GTM
+};
+TagManager.initialize(tagManagerArgs);
 
 React.icons = icons
 
