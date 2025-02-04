@@ -18,15 +18,19 @@ import {
     CJumbotron,
     CRow,
     CImg,
-    CAlert
+    CAlert,
+    CInput,
+    CLabel
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { useToasts } from 'react-toast-notifications';
-import { reactLocalStorage } from 'reactjs-localstorage';
 import 'core-js/es/array';
 
 import { Slide } from 'react-slideshow-image';
 import 'react-slideshow-image/dist/styles.css'
+import TrackEvent from './componentes/TrackEvent';
+import { isNil } from 'lodash';
+import * as icon from '@coreui/icons';
 
 function TrackingInformation(props) {
     const match = useRouteMatch();
@@ -72,7 +76,7 @@ function TrackingInformation(props) {
                 if (item.img !== null) {
                     data_obj = {
                         id: item.id,
-                        img: item.img,
+                        img: item.img ?? item.imagen,
                         link: item.link,
                         title: item.link
                     }
@@ -269,62 +273,102 @@ function TrackingInformation(props) {
 
 
     return (
-        (info && step_classes) ?
+        (info) ?
             <>
                 <CContainer className="tracking-info pt-5 pb-5">
                     <CRow className="justify-content-md-center mb-3">
-                        {/* <CCol lg="1"></CCol> */}
-                        <CCol className="col-md-auto">
+                        <CCol>
                             <h1 className="title">
                                 Tracking
                             </h1>
                         </CCol>
-                        {/* <CCol lg="1"></CCol> */}
+                        <CCol className="ml-auto text-right">
+
+                        </CCol>
                     </CRow>
-                    <CRow className="mb-3">
-                        <CCol sm="12">
-                            <div className="stepper-wrapper">
-                                <div className={step_classes.step1}>
-                                    <div className="step-counter">
-                                        <CImg
-                                            src={`img/icons/tracking/icon-1-${step_classes.step1_img}.svg`}
-                                            fluid
-                                            style={{ height: (step_classes.step1_img !== 'completed-hold') ? '120px' : '80px' }}
-                                        />
-                                    </div>
-                                    <div className="step-name">Recibido</div>
-                                </div>
-                                <div className={step_classes.step2}>
-                                    <div className="step-counter">
-                                        <CImg
-                                            src={`img/icons/tracking/icon-2-${step_classes.step2_img}.svg`}
-                                            fluid
-                                            style={{ height: (step_classes.step2_img !== 'completed-hold') ? '120px' : '80px' }}
-                                        />
-                                    </div>
-                                    <div className="step-name">Almacén</div>
-                                </div>
-                                <div className={step_classes.step3}>
-                                    <div className="step-counter">
-                                        <CImg
-                                            src={`img/icons/tracking/icon-3-${step_classes.step3_img}.svg`}
-                                            fluid
-                                            style={{ height: (step_classes.step3_img !== 'completed-hold') ? '120px' : '80px' }}
-                                        />
-                                    </div>
-                                    <div className="step-name">En Tránsito</div>
-                                </div>
-                                <div className={step_classes.step4}>
-                                    <div className="step-counter">
-                                        <CImg
-                                            src={`img/icons/tracking/icon-4-${step_classes.step4_img}.svg`}
-                                            fluid
-                                            style={{ height: (step_classes.step4_img !== 'completed-hold') ? '110px' : '80px' }}
-                                        />
-                                    </div>
-                                    <div className="step-name">Entregado</div>
-                                </div>
-                            </div>
+                    <CRow>
+                        <CCol xs="12" sm="4" md="6" lg="6">
+                            <h1 className="title text-right">
+                                No. de Orden: {info.id}
+                            </h1>
+                            <br />
+                            <CContainer>
+                                {(!isNil(info.tienda)) && (
+                                    <CRow>
+                                        <CCol>
+                                            <strong>Tienda: </strong> {info.tienda}
+                                        </CCol>
+                                    </CRow>
+                                )}
+
+                                <CRow>
+                                    <CCol>
+                                        <h4>
+                                            <strong className='labelsEntrega'>Destinatario: </strong> {info.nombre_destino}
+                                        </h4>
+                                    </CCol>
+                                </CRow>
+                                <CRow>
+                                    <CCol>
+                                        <h4>
+                                            <strong className='labelsEntrega'>Dirección de entrega: </strong> {info.direccion_destino}
+                                        </h4>
+                                    </CCol>
+                                </CRow>
+                                <br /><br /><br />
+                                <CRow>
+                                    <CCol xs={12} sm={12} md={12} lg={12}>
+                                        <div class="button-box">
+                                            <button class="button2" onClick={() => { window.open(`http://localhost:3000/#/Confirmacion-datos/${info.guia}`) }}>
+                                                <p class="titulo">Confirmar <br /> dirección</p>
+
+                                                <img
+                                                    src={`img/icons/emojis/astro.png`}
+
+                                                    alt="Hands"
+                                                />
+                                                <p class="description">de entrega</p>
+                                            </button>
+                                        </div>
+                                    </CCol>
+                                    <CCol xs={12} sm={12} md={12} lg={12}>
+                                        <div class="button-box">
+                                            <button class="button2" onClick={() => { window.open(`https://api.whatsapp.com/send?phone=50244793488&text=Hola%20me%20gustar%C3%ADa%20saber%20en%20donde%20esta%20mi%20paquete,%20esta%20es%20la%20clave%20del%20pedido:%20${id}`) }}>
+                                                <p class="titulo">¿Ayuda?</p>
+
+                                                <img
+                                                    src={`img/icons/emojis/manos.png`}
+                                                    alt="Man"
+                                                />
+                                                <p class="description">¿Que<br /> necesitas?</p>
+                                            </button>
+                                        </div>
+                                    </CCol>
+                                    <CCol xs={12} sm={12} md={12} lg={12}>
+                                        <div class="button-box">
+                                            <button class="button2" onClick={() => { window.open(`https://api.whatsapp.com/send?phone=50244793488&text=Hola%20me%20gustar%C3%ADa%20saber%20en%20donde%20esta%20mi%20paquete,%20esta%20es%20la%20clave%20del%20pedido:%20${id}`) }}>
+                                                <p class="titulo">Seleccionar <br /> entrega</p>
+
+                                                <img
+                                                    src={`img/icons/emojis/calendario.gif`}
+                                                    alt="Man"
+                                                    className='sm'
+                                                />
+                                                <p class="description">Cambio<br /> fecha</p>
+                                            </button>
+                                        </div>
+                                    </CCol>
+                                </CRow>
+                            </CContainer>
+                        </CCol>
+                        <CCol xs="12" sm="8" md="6" lg="6" className='containerTracking'>
+                            <CRow className={``}>
+                                <CCol className={`d-flex flex-column text-right containerSearch`}>
+                                    <CInput type='text' value={info.guia}></CInput>
+                                    <small>Ingrese otra orden.</small>
+                                </CCol>
+                            </CRow>
+                            <TrackEvent className='m-auto'></TrackEvent>
                         </CCol>
                     </CRow>
                     <CRow className="justify-content-md-center mb-3"
@@ -339,73 +383,10 @@ function TrackingInformation(props) {
                             </CAlert>
                         </CCol>
                     </CRow>
-                    <CRow className="justify-content-md-center mb-3">
-                        <CCol sm="12" lg="10">
-                            <CCard className="tracking-card pt-5 pb-5">
-                                {
-                                    Object.entries(info_keys).map(
-                                        ([key, value], index) => {
-                                            let array_data = Object.entries(info_keys);
-                                            if (!(index % 2)) {
-                                                if (array_data[index + 1] !== undefined) {
-                                                    return <RowData left_data={array_data[index]} right_data={array_data[index + 1]} info_keys={info_keys} data={info} key={`${index}-row`} />
-                                                }
-                                            }
-                                        }
-                                    )
-                                }
-                                {
-                                    Object.entries(info_keys_full_rows).map(
-                                        ([key, value], index) => {
-                                            return <FullRowData data_key={key} info_keys={info_keys_full_rows} data={info} key={`${index}-full-row`} />
-                                        }
-                                    )
-                                }
-                                <CRow className="p-2" style={{ display: info.multimedia.length > 0 ? 'block' : 'none' }}>
-                                    <CCol>
-                                        <CRow className="ml-4 d-flex flex-column">
-                                            <h6>Imágenes de referencia:</h6>
-                                            <ul>
-                                                {
-                                                    info.multimedia.map(
-                                                        (data, index) => {
-                                                            return <li><a href={data.urlExterna == 1 ? data.imagen : `https://ws.conectaguate.com/${data.imagen}`} target="_blank"> Referencia #{index + 1}</a></li>
-                                                        }
-                                                    )
-                                                }
-                                            </ul>
-                                        </CRow>
-                                    </CCol>
-                                </CRow>
-                            </CCard>
-                        </CCol>
-                    </CRow>
-                    <CRow className="justify-content-md-center mb-3">
-                        <CCol sm="12" lg="10">
-                            <CRow>
-                                <CCol sm="10" lg="10">
-                                    <p style={{ textAlign: 'right' }}>Si necesitas más infomacion sobre tu paquete</p>
-                                </CCol>
-                                <CCol>
-                                    <CButton
-                                        href={`https://api.whatsapp.com/send?phone=50244793488&text=Hola%20me%20gustar%C3%ADa%20saber%20en%20donde%20esta%20mi%20paquete,%20esta%20es%20la%20clave%20del%20pedido:%20${id}`}
-                                        style={{ backgroundColor: '#94be00' }}
-                                        className="btn-conecta-wa btn-brand mr-1 mb-1"
-                                        target="_blank"
-                                    >
-                                        <CImg
-                                            src={`img/whatsapp.png`}
-                                            fluid
-                                            style={{ height: '20px' }}
-                                        />
-                                        <span className="mfs-2" style={{ color: 'white' }}>Click Aqui</span>
-                                    </CButton>
-                                </CCol>
-
-                            </CRow>
-                        </CCol>
-                    </CRow>
-
+                    <br />
+                    <br />
+                    <br />
+                    <br />
                     {
                         (data_cross_selling.length > 0) ?
                             <CRow className="justify-content-md-center mb-4" >
@@ -454,9 +435,6 @@ const RowData = (props) => {
 
 
 const FullRowData = (props) => {
-    if (props.data[props.data_key] === null) {
-        return null;
-    }
     return (
         <CRow className="p-2">
             <CCol>
@@ -475,7 +453,15 @@ const MultipleSlidesExample = (props) => {
         padding: '10px 0',
         fontSize: '30px'
     };
-
+    const styleButton = {
+        marginTop: 'auto',
+        marginBottom: '10px',
+        width: 'fit-content',
+        marginLeft: 'auto',
+        backgroundColor: '#26a2e8',
+        border: '#26a2e8',
+        fontWeight: '700'
+    }
     const properties = {
         duration: 500,
         slidesToShow: (data.length < 3) ? data.length : 3,
@@ -494,14 +480,24 @@ const MultipleSlidesExample = (props) => {
         if (newWindow) newWindow.opener = null
     }
 
-
+    const clickProductoConecta = (id) => {
+        axios({
+            method: 'post',
+            url: `https://ws.conectaguate.com/api/v1/click/cross/${id}`,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        });
+    }
 
     return (
         <div>
             <div>
                 <Slide {...properties}>
                     {data.map((item, index) => {
-                        let img_context = 'https://ws.conectaguate.com/' + item.img;
+                        const img_context = item.img.includes('ws.conectaguate')
+                            ? item.img
+                            : `https://ws.conectaguate.com/${item.img}`;
                         return <div style={style} key={`div_carrousel_${index}`}>
                             <CCard style={{
                                 backgroundImage: `url("${img_context}")`,
@@ -510,9 +506,11 @@ const MultipleSlidesExample = (props) => {
                                 className="cross-selling-image"
                                 onClick={(e) => {
                                     e.preventDefault();
+                                    clickProductoConecta(item.id)
                                     openInNewTab(item.link)
                                 }}
                             >
+                                <CButton className="btn btn-primary" style={styleButton}>ver más</CButton>
                             </CCard>
                         </div>
                     })}
