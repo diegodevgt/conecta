@@ -333,7 +333,7 @@ function TrackingInformation(props) {
                                     </CCol>
                                     <CCol xs={12} sm={12} md={12} lg={12}>
                                         <div class="button-box">
-                                            <button class="button2" onClick={() => { window.open(`https://api.whatsapp.com/send?phone=50244793488&text=Hola%20me%20gustar%C3%ADa%20saber%20en%20donde%20esta%20mi%20paquete,%20esta%20es%20la%20clave%20del%20pedido:%20${id}`) }}>
+                                            <button class="button2" onClick={() => { window.open(`https://api.whatsapp.com/send?phone=50242860214&text=Hola%20me%20gustar%C3%ADa%20saber%20en%20donde%20esta%20mi%20paquete,%20esta%20es%20la%20clave%20del%20pedido:%20${id}`) }}>
                                                 <p class="titulo">¿Ayuda?</p>
 
                                                 <img
@@ -346,7 +346,7 @@ function TrackingInformation(props) {
                                     </CCol>
                                     <CCol xs={12} sm={12} md={12} lg={12}>
                                         <div class="button-box">
-                                            <button class="button2" onClick={() => { window.open(`https://api.whatsapp.com/send?phone=50244793488&text=Hola%20me%20gustar%C3%ADa%20saber%20en%20donde%20esta%20mi%20paquete,%20esta%20es%20la%20clave%20del%20pedido:%20${id}`) }}>
+                                            <button class="button2" onClick={() => { window.open(`https://api.whatsapp.com/send?phone=50242860214&text=Hola%20me%20gustar%C3%ADa%20saber%20en%20donde%20esta%20mi%20paquete,%20esta%20es%20la%20clave%20del%20pedido:%20${id}`) }}>
                                                 <p class="titulo">Seleccionar <br /> entrega</p>
 
                                                 <img

@@ -57,7 +57,7 @@ function PublicFooter(props) {
                                         className="social-icons w-100"
                                         src="/img/icons/whatsapp.svg"
                                         onClick={() => {
-                                            window.open('https://api.whatsapp.com/send/?phone=50244793488&text=%C2%A1Quiero%20conectarme!%20%C2%BFMe%20podr%C3%ADan%20dar%20mas%20informaci%C3%B3n?', '_blank').focus();
+                                            window.open('https://api.whatsapp.com/send/?phone=50242860214&text=%C2%A1Quiero%20conectarme!%20%C2%BFMe%20podr%C3%ADan%20dar%20mas%20informaci%C3%B3n?', '_blank').focus();
                                         }}
                                     />
 
