@@ -4,7 +4,6 @@ import { ToastProvider } from 'react-toast-notifications';
 import './index.css';
 import './scss/style.scss';
 
-
 const loading = (
   <div className="pt-3 text-center">
     <div className="sk-spinner sk-spinner-pulse"></div>
@@ -47,7 +46,7 @@ class App extends Component {
               <Route exact path="/confirmacionUsuario" name="ConfirmacionUsuario" render={props => <ConfirmacionUsuario {...props} />} />
               <Route exact path="/planes" name="Planes" render={props => <Planes {...props} />} />
               <Route exact path="/plan-cambio" name="Plan Cambio" render={props => <PlanCambio {...props} />} />
-              <Route exact path="/tracking/:id" name="Tracking Page" render={props => <Tracking {...props} />} />
+              <Route exact path="/tracking/:orden/telefono/:telefono" name="Tracking Page" render={props => <Tracking {...props} />} />
               <Route exact path="/faqs" name="Faqs" render={props => <Faqs {...props} />} />
               <Route exact path="/confirmacion-datos/:id" name="Confirmación de Datos" render={props => <ConfirmacionDatos {...props} /> } />
               <Redirect exact from='/nosotros' to='/' />

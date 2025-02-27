@@ -9,6 +9,7 @@ import {
 import { faSearch } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import axios from 'axios'
+import { isNil } from 'lodash'
 import Radium, { StyleRoot } from 'radium'
 import { useEffect, useState } from 'react'
 import { bounceInLeft } from 'react-animations'
@@ -27,6 +28,7 @@ function SliderTracking(props) {
 
 
     const [guia, setGuia] = useState("")
+    const [telefono, setTelefono] = useState(null)
     const { addToast } = useToasts();
 
     useEffect(() => {
@@ -62,17 +64,22 @@ function SliderTracking(props) {
     }
 
     const searchGuia = async () => {
-        let guia_without_space = guia.trim();
-        let guia_existe = await getGuiaInfo(guia_without_space);
-        if (guia_existe && guia_without_space.length > 0) {
+        if(isNil(guia) || isNil(telefono)){
+            addToast('Ingrese el numero de orden y el teléfono.', { appearance: 'warning', autoDismiss: true, autoDismissTimeout: 3000});
+            return;
+        }
+        let guiaTrim = guia.trim();
+        let telefonoTrim = telefono.trim();
+        let guia_existe = await getGuiaInfo(guiaTrim, telefonoTrim);
+        if (guia_existe) {
             addToast('Guia Encontrada', {
                 appearance: 'info',
                 autoDismiss: true,
                 autoDismissTimeout: 3000
             });
             history.push({
-                pathname: `/tracking/${guia_without_space}`,
-                state: { id: guia_without_space }
+                pathname: `/tracking/${guiaTrim}/telefono/${telefonoTrim}`,
+                state: { orden: guiaTrim, telefono: telefonoTrim }
             });
         } else {
             addToast("Guia no valida", {
@@ -83,18 +90,17 @@ function SliderTracking(props) {
         }
     }
 
-    const getGuiaInfo = async (id) => {
+    const getGuiaInfo = async (orderId, telefono) => {
         const config = {};
-        return await axios.get(`https://ws.conectaguate.com/api/v1/site/pedidio/guia/${id}`, config,).then(
-            (result) => {
-                let exist = false;
-                if (result.data["Data"]["Pedido"] !== null) {
-                    exist = true;
-                }
-                return exist;
-            }, (error) => {
-                //console.log(error.message);
-            });
+        const orderIdBase64 = btoa(orderId);
+        const telefonoBase64 = btoa(telefono);
+        try {
+            const result = await axios.get(`https://ws.conectaguate.com/api/v1/pedido/guia/${orderIdBase64}/telefono/${telefonoBase64}`, config);
+            return result.data["Data"]["Pedido"] !== null;
+        } catch (error) {
+            //console.log(error.message);
+            return false;
+        }
     }
 
     const onSubmit = (e) => {
@@ -235,14 +241,19 @@ function SliderTracking(props) {
                                                 value={guia}
                                                 name="guia"
                                                 type="text"
-                                                placeholder=""
-                                                style={{
-                                                    background: 'white',
-                                                    border: '0px',
-                                                    fontSize: '1.5rem'
-                                                }}
+                                                placeholder="#Orden"
+                                                className="busqueda-tracking-input"
                                                 onChange={handleChange}
                                             />
+                                            <CInput
+                                                value={telefono}
+                                                name="telefono"
+                                                type="number"
+                                                placeholder="#Teléfono"
+                                                className="busqueda-tracking-input"
+                                                onChange={(e) => setTelefono(e.target.value)}
+                                            />
+                                            
                                             <CInputGroupAppend
                                                 onClick={(e) => {
                                                     e.preventDefault();
@@ -250,11 +261,14 @@ function SliderTracking(props) {
                                                 }}
                                                 style={{ cursor: 'pointer' }}
                                             >
-                                                <CInputGroupText>
+                                                <CInputGroupText style={{
+                                                    backgroundColor: "#153b75",
+                                                    border: "#153b75"
+                                                }}>
                                                     <FontAwesomeIcon
                                                         icon={faSearch}
-                                                        style={{ marginRight: '.3rem' }}
-                                                        size="2x"
+                                                        style={{ marginRight: '.3rem', color: 'white'}}
+                                                        size="lg"
                                                     />
                                                 </CInputGroupText>
                                             </CInputGroupAppend>

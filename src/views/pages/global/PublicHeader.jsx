@@ -14,7 +14,7 @@ function PublicHeader(props) {
   window.onscroll = function () { myFunction() };
 
   function myFunction() {
-    if (window.scrollY > 100) {
+    if (window.scrollY > 200) {
       setScrollAuto('container-header active');
     } else {
       setScrollAuto('container-header');

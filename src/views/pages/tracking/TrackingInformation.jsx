@@ -3,24 +3,22 @@ import React, {
     useState
 } from 'react'
 import {
-    useHistory,
-    useRouteMatch,
     useParams
 } from "react-router-dom";
 import axios from 'axios';
 import {
     CButton,
     CCard,
-    CCardBody,
     CCardHeader,
+    CCardBody,
     CCol,
     CContainer,
-    CJumbotron,
     CRow,
-    CImg,
     CAlert,
     CInput,
-    CLabel
+    CLabel,
+    CModalFooter,
+    CSelect
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { useToasts } from 'react-toast-notifications';
@@ -30,41 +28,43 @@ import { Slide } from 'react-slideshow-image';
 import 'react-slideshow-image/dist/styles.css'
 import TrackEvent from './componentes/TrackEvent';
 import { isNil } from 'lodash';
-import * as icon from '@coreui/icons';
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { CModal, CModalBody, CModalHeader } from '@coreui/react';
 
-function TrackingInformation(props) {
-    const match = useRouteMatch();
-    let { id } = useParams();
-    const [info, setInfo] = useState(null)
-    const [step_classes, setStepClasses] = useState(null)
-    const [user, setUser] = useState({});
-    const [transportes, setTransportes] = useState(null);
-    const [estatus, setEstatus] = useState(null);
-    const [tipos_de_pago, setTiposDePago] = useState(null);
+import es from "date-fns/locale/es"; // Importa el locale en español
+
+registerLocale("es", es);
+
+function TrackingInformation() {
+    let { telefono, orden } = useParams();
+    const [ordenId, setOrdenId] = useState(null);
+    const [info, setInfo] = useState(null); //Este se usa para la informacion del pedido.
     const [data_cross_selling, setDataCrossSelling] = useState([]);
     const { addToast } = useToasts();
-    const history = useHistory();
+    const [parametrosBusqueda, setParametrosBusqueda] = useState({
+        telefono: null,
+        ordenId: null
+    });
+    const [showComments, setShowComments] = useState(false);
 
-    const isoToDate = (str) => {
-        let date_edited = new Date(str);
-        let year = date_edited.getFullYear();
-        let month = date_edited.getMonth() + 1;
-        let dt = date_edited.getDate();
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [horario, setHorario] = useState("Matutino");
+    const handleDateChange = (date) => {
+        setSelectedDate(date);
+    };
 
-        if (dt < 10) {
-            dt = '0' + dt;
-        }
-        if (month < 10) {
-            month = '0' + month;
-        }
-        date_edited = dt + "-" + month + "-" + year;
-        return date_edited
-    }
+    const [modal, setModal] = useState(false);
+
+    const toggle = () => setModal(!modal);
 
     useEffect(() => {
+        if (ordenId == null) {
+            return;
+        }
         axios({
             method: 'get',
-            url: `https://ws.conectaguate.com/api/v1/site/cross/${id}`,
+            url: `https://ws.conectaguate.com/api/v1/site/cross/${ordenId}`,
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -85,302 +85,306 @@ function TrackingInformation(props) {
             })
             setDataCrossSelling(new_array);
         });
-    }, [])
+    }, [ordenId])
 
 
     useEffect(() => {
-        let base_url = 'https://ws.conectaguate.com/api'
+        const config = {};
+        setParametrosBusqueda({ telefono: telefono, ordenId: orden });
+        const encodedOrden = btoa(orden);
+        const encodedTelefono = btoa(telefono);
+        axios.get(`https://ws.conectaguate.com/api/v1/pedido/guia/${encodedOrden}/telefono/${encodedTelefono}`, config,).then(
+            (result) => {
+                let res = result.data["Data"];
+                setInfo(res);
+                setOrdenId(res.pedido.id);
+                addToast("Se encontro la orden.", { appearance: 'success', autoDismiss: true, autoDismissTime: 300 })
+            }).catch((error) => {
+                addToast("No se encontro la orden.", { appearance: 'warning', autoDismiss: true, autoDismissTime: 300 });
+            });
+    }, [telefono, orden])
 
-        let transportes = new Promise((resolve, reject) => axios({ method: 'get', url: base_url + '/v1/site/transportes', }).then((data) => resolve({ key: 'transportes', data: data.data['Data'] }, 'transportes')));
-        let estatus = new Promise((resolve, reject) => axios({ method: 'get', url: base_url + '/v1/site/estatus', }).then((data) => resolve({ key: 'estatus', data: data.data['Data'] }, 'estatus')));
-        let tipos_de_pago = new Promise((resolve, reject) => axios({ method: 'get', url: base_url + '/v1/site/tipopago', }).then((data) => resolve({ key: 'tipos_de_pago', data: data.data['Data'] }, 'tipos_de_pago')));
-
-        Promise.all([transportes, estatus, tipos_de_pago]).then((values) => {
-            values.forEach((elem) => {
-                let obj = {};
-                switch (elem.key) {
-                    case 'transportes':
-                        elem.data.forEach((elem) => {
-                            obj[elem.id] = elem;
-                        })
-                        setTransportes(obj);
-                        break;
-                    case 'estatus':
-                        elem.data.forEach((elem) => {
-                            obj[elem.id] = elem;
-                        })
-                        setEstatus(obj);
-                        break;
-                    case 'tipos_de_pago':
-                        elem.data.forEach((elem) => {
-                            obj[elem.id] = elem;
-                        })
-                        setTiposDePago(obj);
-                        break;
-                    default:
-                        ;
-                }
-            })
-        });
-    }, []);
-
-    useEffect(() => {
-        if (transportes !== null && estatus !== null && tipos_de_pago !== null) {
-            const config = {};
-            axios.get(`https://ws.conectaguate.com/api/v1/site/pedidio/guia/${id}`, config,).then(
-                (result) => {
+    const buscarNuevaGuia = () => {
+        const { telefono, ordenId } = parametrosBusqueda;
+        if (telefono && ordenId) {
+            const encodedOrden = btoa(ordenId);
+            const encodedTelefono = btoa(telefono);
+            axios.get(`https://ws.conectaguate.com/api/v1/pedido/guia/${encodedOrden}/telefono/${encodedTelefono}`)
+                .then((result) => {
                     let res = result.data["Data"];
-                    let classes = {};
-                    if (result.data["Data"]["Pedido"] === null) {
-                        addToast('Guia no valida', {
-                            appearance: 'error',
-                            autoDismiss: true,
-                            autoDismissTimeout: 3000
-                        });
-                        history.push({
-                            pathname: `/`,
-                        });
-                        return false
-                    } else {
-                        let pedido = res["Pedido"];
-                        res["Pedido"].estado_pedido = estatus[res["Pedido"].status].nombre;
-                        setInfo({
-                            ...pedido,
-                            created_at: isoToDate(pedido.created_at),
-                            updated_at: isoToDate(pedido.updated_at),
-                            tipo_pago: pedido.tipo_pago != null ? tipos_de_pago[pedido.tipo_pago].nombre : "N/A",
-                            nombre_tienda: (res["Empresa"]) ? res["Empresa"] : "",
-                            multimedia: res["multimedia"]
-                        })
-                    }
-
-                    if (res["Pedido"].estado_pedido === 'Completada') {
-                        classes.step1 = "stepper-item completed"
-                        classes.step2 = "stepper-item completed"
-                        classes.step3 = "stepper-item completed"
-                        classes.step4 = "stepper-item completed"
-                        classes.step1_img = "completed"
-                        classes.step2_img = "completed"
-                        classes.step3_img = "completed"
-                        classes.step4_img = "completed"
-                    } else if (res["Pedido"].estado_pedido === 'Tránsito') {
-                        classes.step1 = "stepper-item completed"
-                        classes.step2 = "stepper-item completed"
-                        classes.step3 = "stepper-item active"
-                        classes.step4 = "stepper-item "
-                        classes.step1_img = "completed"
-                        classes.step2_img = "completed"
-                        classes.step3_img = "active"
-                        classes.step4_img = "completed-hold"
-                    } else if (res["Pedido"].estado_pedido === 'Almacén') {
-                        classes.step1 = "stepper-item completed"
-                        classes.step2 = "stepper-item active"
-                        classes.step3 = "stepper-item "
-                        classes.step4 = "stepper-item "
-                        classes.step1_img = "completed"
-                        classes.step2_img = "active"
-                        classes.step3_img = "completed-hold"
-                        classes.step4_img = "completed-hold"
-                    } else if (res["Pedido"].estado_pedido === 'Creado') {
-                        classes.step1 = "stepper-item active"
-                        classes.step2 = "stepper-item "
-                        classes.step3 = "stepper-item "
-                        classes.step4 = "stepper-item "
-                        classes.step1_img = "active"
-                        classes.step2_img = "completed-hold"
-                        classes.step3_img = "completed-hold"
-                        classes.step4_img = "completed-hold"
-                    } else if (res["Pedido"].estado_pedido === 'Recibido') {
-                        classes.step1 = "stepper-item active"
-                        classes.step2 = "stepper-item "
-                        classes.step3 = "stepper-item "
-                        classes.step4 = "stepper-item "
-                        classes.step1_img = "active"
-                        classes.step2_img = "completed-hold"
-                        classes.step3_img = "completed-hold"
-                        classes.step4_img = "completed-hold"
-                    } else if (res["Pedido"].estado_pedido === 'Devolución') {
-                        classes.step1 = "stepper-item completed"
-                        classes.step2 = "stepper-item completed"
-                        classes.step3 = "stepper-item active"
-                        classes.step4 = "stepper-item "
-                        classes.step1_img = "completed"
-                        classes.step2_img = "completed"
-                        classes.step3_img = "active"
-                        classes.step4_img = "completed-hold"
-                    } else if (res["Pedido"].estado_pedido === 'Liquidado') {
-                        classes.step1 = "stepper-item completed"
-                        classes.step2 = "stepper-item completed"
-                        classes.step3 = "stepper-item completed"
-                        classes.step4 = "stepper-item completed"
-                        classes.step1_img = "completed"
-                        classes.step2_img = "completed"
-                        classes.step3_img = "completed"
-                        classes.step4_img = "completed"
-                    } else if (res["Pedido"].estado_pedido === 'Cancelado') {
-                        classes.step1 = "stepper-item completed"
-                        classes.step2 = "stepper-item completed"
-                        classes.step3 = "stepper-item completed"
-                        classes.step4 = "stepper-item "
-                        classes.step1_img = "completed"
-                        classes.step2_img = "completed"
-                        classes.step3_img = "completed"
-                        classes.step4_img = "completed-hold"
-                    } else {
-                        classes.step1 = "stepper-item "
-                        classes.step2 = "stepper-item "
-                        classes.step3 = "stepper-item "
-                        classes.step4 = "stepper-item "
-                        classes.step1_img = "completed-hold"
-                        classes.step2_img = "completed-hold"
-                        classes.step3_img = "completed-hold"
-                        classes.step4_img = "completed-hold"
-                    }
-                    setStepClasses({ ...classes })
-
-
-                },
-                (error) => {
-
-                    //console.log(error);
-
+                    setInfo(res);
+                    setOrdenId(res.pedido.id);
+                    addToast("Se encontro la orden.", { appearance: 'success', autoDismiss: true, autoDismissTime: 300 })
+                })
+                .catch((error) => {
+                    addToast("No se encontro la orden.", { appearance: 'warning', autoDismiss: true, autoDismissTime: 300 });
                 });
+        } else {
+            addToast("Ingrese el teléfono y numero de orden.", { appearance: 'warning' });
         }
-    }, [transportes, estatus, tipos_de_pago])
-
-    const info_keys = {
-        created_at: 'Fecha',
-        updated_at: 'Actualización',
-        id: 'Orden',
-        guia: 'Guía',
-        estado_pedido: 'Estado',
-        nombre_destino: 'Destinatario',
-        nombre_tienda: 'Tienda',
-        telefono_destino: 'Telefono destino',
-        tipo_pago: 'Pago',
-        tipoDestino: 'Destino'
-
     }
 
-    const info_keys_full_rows = {
-        direccion_destino: 'Direccion de entrega',
-        // descripcion_producto: 'Descripción de producto',
-        comentarios: 'Comentarios'
+    const solicitarCambioFecha = () => {
+
+        if (isNil(selectedDate)) {
+            addToast("Por favor, seleccione una fecha antes de solicitar el cambio.", { appearance: 'warning', autoDismiss: true, autoDismissTime: 300 });
+            return;
+        }
+
+        if (isNil(horario)) {
+            addToast("Por favor, seleccione un horario de entrega.", { appearance: 'warning', autoDismiss: true, autoDismissTime: 300 });
+            return;
+        }
+
+        const body = {
+            fecha: selectedDate,
+            horario: horario,
+            pedidoId: ordenId
+        }
+
+        const url = 'https://ws.conectaguate.com/api/v1/pedido/solicitudcambio';
+
+        axios.post(url, body, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then((response) => {
+            addToast("Cambio de fecha solicitado exitosamente.", { appearance: 'success', autoDismiss: true, autoDismissTime: 300 });
+            toggle();
+        }).catch((error) => {
+            addToast("Error al solicitar el cambio de fecha.", { appearance: 'error', autoDismiss: true, autoDismissTime: 300 });
+        });
     }
 
-    useEffect(() => {
-    }, [step_classes])
-
+    const convertirFecha = (fecha) => {
+        if (isNil(fecha)) {
+            return '';
+        }
+        let fechaEntrega = new Date(fecha);
+        let options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return fechaEntrega.toLocaleDateString('es-ES', options);
+    }
 
     return (
         (info) ?
             <>
                 <CContainer className="tracking-info pt-5 pb-5">
-                    <CRow className="justify-content-md-center mb-3">
-                        <CCol>
+                    <CRow className="justify-content-md-center text-center mb-3">
+                        <CCol xs="12" sm="12" md="12" lg="12">
                             <h1 className="title">
                                 Tracking
                             </h1>
                         </CCol>
-                        <CCol className="ml-auto text-right">
+                    </CRow>
+                    <CRow>
+                        <CCol xs="12" sm="12" md="12" lg="12">
+                            <CCard className={"card-container-tracking"}>
+                                <CCardBody>
+                                    <CRow>
+                                        <CCol xs="12" sm="12" md="6" lg="6">
+                                            <CRow className={`text-right d-flex flex-row justify-content-end contenedorBusquedaGuia`}>
+                                                <CCol xs="12" sm="12" md="12" lg="6">
+                                                    <CLabel className={`mb-0 text-left busqueda-tracking`} htmlFor="ordenId">No. de orden</CLabel>
+                                                    <CInput
+                                                        type="text"
+                                                        id="ordenId"
+                                                        placeholder='No. de orden'
+                                                        value={parametrosBusqueda.ordenId}
+                                                        className="busqueda-tracking-input"
+                                                        onChange={(e) => setParametrosBusqueda({ ...parametrosBusqueda, ordenId: e.target.value })}
+                                                    />
+                                                </CCol>
+                                                <CCol xs="12" sm="12" md="12" lg="6">
+                                                    <CLabel className={`mb-0 text-left busqueda-tracking`} htmlFor="ordenId">Teléfono</CLabel>
+                                                    <div className='d-flex justify-content-end'>
+                                                        <CInput
+                                                            type="text"
+                                                            id="telefono"
+                                                            value={parametrosBusqueda.telefono}
+                                                            className="busqueda-tracking-input"
+                                                            placeholder='Numero teléfono destinatario'
+                                                            onChange={(e) => setParametrosBusqueda({ ...parametrosBusqueda, telefono: e.target.value })}
+                                                        />
+                                                        <CButton color="primary" className={`btn-busqueda`} onClick={buscarNuevaGuia}>
+                                                            <CIcon name="cil-magnifying-glass" size='auto' className='icono-search' />
+                                                        </CButton>
+                                                    </div>
+                                                </CCol>
+                                            </CRow>
+                                        </CCol>
+                                        <CCol xs="12" sm="12" md="6" lg="6" className={"d-flex flex-column text-center"}>
+                                            <p className='titulo-info-guia'>Guía: <span>{info?.pedido?.guia}</span></p>
+                                        </CCol>
+                                        <CCol xs="12" sm="12" md="6" lg="6">
+                                            <br />
+                                            <CContainer>
+                                                {(!isNil(info.tienda)) && (
+                                                    <CRow>
+                                                        <CCol>
+                                                            <strong>Tienda: </strong> {info.tienda}
+                                                        </CCol>
+                                                    </CRow>
+                                                )}
 
+                                                <CRow>
+                                                    <CCol>
+                                                        <p className='fecha-tracking'>Fecha pedido <span>{convertirFecha(info?.pedido?.created_at)}</span></p>
+                                                    </CCol>
+                                                </CRow>
+                                                <CRow className="direccionEntrega">
+                                                    <CCol xs={4} sm={4} md={2} lg={2} className={"d-flex flex-column justify-content-center"}>
+                                                        <img
+                                                            src="img/icons/tracking-icons/user.png"
+                                                            alt="Usuario"
+                                                            className="icono-informacion-tracking"
+                                                        />
+                                                    </CCol>
+                                                    <CCol xs={8} sm={8} md={10} lg={10}>
+                                                        <CLabel className={"label-informacion-tracking"}>Destinatario</CLabel>
+                                                        <p className='informacion-tracking'>{info?.pedido?.nombre_destino}</p>
+                                                    </CCol>
+                                                </CRow>
+                                                <CRow className="tienda">
+                                                    <CCol xs={4} sm={4} md={2} lg={2} className={"d-flex flex-column justify-content-start"}>
+                                                        <img
+                                                            src="img/icons/tracking-icons/store.png"
+                                                            alt="Tienda"
+                                                            className="icono-informacion-tracking"
+                                                        />
+                                                    </CCol>
+                                                    <CCol xs={8} sm={8} md={10} lg={10}>
+                                                        <CLabel className={"label-informacion-tracking"}>Tienda</CLabel>
+                                                        <p className='informacion-tracking'>{info?.pedido?.empresa}</p>
+                                                    </CCol>
+                                                </CRow>
+                                                <CRow className="pago">
+                                                    <CCol xs={4} sm={4} md={2} lg={2} className={"d-flex flex-column justify-content-start"}>
+                                                        <img
+                                                            src="img/icons/tracking-icons/money.png"
+                                                            alt="Dinero"
+                                                            className="icono-informacion-tracking"
+                                                        />
+                                                    </CCol>
+                                                    <CCol xs={8} sm={8} md={10} lg={10}>
+                                                        <CLabel className={"label-informacion-tracking"}>Pago contra entrega</CLabel>
+                                                        <p className='informacion-tracking'>Q{info?.pedido?.COD}</p>
+                                                    </CCol>
+                                                </CRow>
+                                                <CRow className="direccionEntrega">
+                                                    <CCol xs={4} sm={4} md={2} lg={2} className={"d-flex flex-column justify-content-start"}>
+                                                        <img
+                                                            src="img/icons/tracking-icons/paper.png"
+                                                            alt="Entrega"
+                                                            className="icono-informacion-tracking"
+                                                        />
+                                                    </CCol>
+                                                    <CCol xs={8} sm={8} md={10} lg={10}>
+                                                        <CLabel className={"label-informacion-tracking"}>Dirección de entrega</CLabel>
+                                                        <p className='informacion-tracking'>{info?.pedido?.direccion_destino}</p>
+                                                    </CCol>
+                                                </CRow>
+                                                <CRow className="confirmarDireccion">
+                                                    {isNil(info?.direccionConfirmada) &&
+                                                        <CCol xs={12} sm={12} md={12} lg={12} className={"text-center d-flex flex-column"}>
+                                                            <CButton className={"btn-confirmar-direccion"} onClick={() => { window.open(`http://localhost:3000/#/Confirmacion-datos/${info.pedido.guia}`) }}>Confirmar dirección</CButton>
+                                                        </CCol>
+                                                    }
+                                                    {!isNil(info?.direccionConfirmada) &&
+                                                        <CCol xs={12} sm={12} md={12} lg={12} className={"text-center d-flex flex-column"}>
+                                                            <p className='fecha-tracking'>
+                                                                Dirección confirmada: <br /> <strong>{info?.direccionConfirmada}</strong>
+                                                            </p>
+                                                        </CCol>
+                                                    }
+
+                                                </CRow>
+                                                <CRow className="reprogramar-entrega">
+                                                    {isNil(info?.fechaConfirmacion) &&
+
+                                                        <CCol xs={12} sm={12} md={12} lg={12} className={"text-center d-flex flex-column"}>
+                                                            <CButton className={"btn-reprogramar-entrega"} onClick={toggle}>¿Reprogramar entrega?</CButton>
+                                                            <p style={{ maxWidth: '75%', margin: 'auto', marginTop: '10px', fontSize: '.9em' }}>
+                                                                Si no puedes recibir tu paquete el día o dirección programado, cambia tus datos en esta opción.
+                                                            </p>
+                                                        </CCol>
+                                                    }
+                                                    {!isNil(info?.fechaConfirmacion) &&
+
+                                                        <CCol xs={12} sm={12} md={12} lg={12} className={"text-center d-flex flex-column"}>
+                                                            <p className='fecha-tracking'>
+                                                                Fecha confirmación de entrega: <br /> <strong>{info?.fechaConfirmacion} {!isNil(info?.horario) && <span>entrega {info?.horario}</span>}</strong>
+                                                            </p>
+                                                        </CCol>
+                                                    }
+                                                </CRow>
+                                                <CRow>
+                                                    <CCol xs={12} sm={12} md={12} lg={12}>
+                                                        <CModal show={modal} onClose={toggle}>
+                                                            <CModalHeader closeButton><h4>Solicitar fecha de entrega</h4></CModalHeader>
+                                                            <CModalBody>
+                                                                <CCol colSpan={12}>
+
+                                                                    <p>Seleccione la fecha de entrega que necesita. Solo se habilitarán los días disponibles.</p>
+                                                                    <CRow className={"w-100"}>
+                                                                        <div className="form-group w-75">
+                                                                            <label htmlFor="fechaEntrega" className='mb-0'>Fecha</label>
+                                                                            <DatePicker
+                                                                                selected={selectedDate}
+                                                                                onChange={handleDateChange}
+                                                                                minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
+                                                                                maxDate={new Date(new Date().setDate(new Date().getDate() + 7))}
+                                                                                placeholderText="Seleccionar fecha de entrega"
+                                                                                className="form-control w-100"
+                                                                                id="fechaEntrega"
+                                                                                locale="es"
+                                                                                name="fechaEntrega"
+                                                                                filterDate={(date) => date.getDay() !== 0}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="form-group w-25">
+                                                                            <label htmlFor="horario" className='mb-0'>Horario Entrega</label>
+                                                                            <CSelect
+                                                                                id="horario"
+                                                                                value={horario}
+                                                                                onChange={(e) => setHorario(e.target.value)}
+                                                                            >
+                                                                                <option value="Matutina">Mañana de 8:00 AM - 12:00 PM</option>
+                                                                                <option value="Vespertina">Tarde de 12:30 PM - 5:00 PM</option>
+                                                                            </CSelect>
+                                                                        </div>
+                                                                    </CRow>
+                                                                </CCol>
+                                                            </CModalBody>
+                                                            <CModalFooter>
+                                                                <CButton className={'btn btn-primary'} onClick={solicitarCambioFecha}>Solicitar Cambio de fecha</CButton>
+                                                            </CModalFooter>
+                                                        </CModal>
+                                                    </CCol>
+                                                </CRow>
+                                            </CContainer>
+                                        </CCol>
+                                        <CCol xs="12" sm="12" md="6" lg="6" className='containerTracking'>
+                                            <TrackEvent className='m-auto' data={info}></TrackEvent>
+                                            {(info.pedido.comentarios !== "" && info.pedido.comentarios !== null && info.pedido.comentarios !== "Sin comentarios...") &&
+                                                <CRow>
+                                                    <CCol xs="12" sm="11" md="10" lg="10" className={'m-auto'}>
+                                                        <p className='titulo-comentarios-informacion'>Detalles de entrega</p>
+                                                        <p className="comentarios-informacion" dangerouslySetInnerHTML={{ __html: (info.pedido.comentarios ?? "").replace(/\n/g, '<br />') }}></p>
+                                                    </CCol>
+                                                </CRow>
+                                            }
+                                        </CCol>
+                                    </CRow>
+                                </CCardBody>
+                            </CCard>
                         </CCol>
                     </CRow>
                     <CRow>
-                        <CCol xs="12" sm="4" md="6" lg="6">
-                            <h1 className="title text-right">
-                                No. de Orden: {info.id}
-                            </h1>
-                            <br />
-                            <CContainer>
-                                {(!isNil(info.tienda)) && (
-                                    <CRow>
-                                        <CCol>
-                                            <strong>Tienda: </strong> {info.tienda}
-                                        </CCol>
-                                    </CRow>
-                                )}
-
-                                <CRow>
-                                    <CCol>
-                                        <h4>
-                                            <strong className='labelsEntrega'>Destinatario: </strong> {info.nombre_destino}
-                                        </h4>
-                                    </CCol>
-                                </CRow>
-                                <CRow>
-                                    <CCol>
-                                        <h4>
-                                            <strong className='labelsEntrega'>Dirección de entrega: </strong> {info.direccion_destino}
-                                        </h4>
-                                    </CCol>
-                                </CRow>
-                                <br /><br /><br />
-                                <CRow>
-                                    <CCol xs={12} sm={12} md={12} lg={12}>
-                                        <div class="button-box">
-                                            <button class="button2" onClick={() => { window.open(`http://localhost:3000/#/Confirmacion-datos/${info.guia}`) }}>
-                                                <p class="titulo">Confirmar <br /> dirección</p>
-
-                                                <img
-                                                    src={`img/icons/emojis/astro.png`}
-
-                                                    alt="Hands"
-                                                />
-                                                <p class="description">de entrega</p>
-                                            </button>
-                                        </div>
-                                    </CCol>
-                                    <CCol xs={12} sm={12} md={12} lg={12}>
-                                        <div class="button-box">
-                                            <button class="button2" onClick={() => { window.open(`https://api.whatsapp.com/send?phone=50244793488&text=Hola%20me%20gustar%C3%ADa%20saber%20en%20donde%20esta%20mi%20paquete,%20esta%20es%20la%20clave%20del%20pedido:%20${id}`) }}>
-                                                <p class="titulo">¿Ayuda?</p>
-
-                                                <img
-                                                    src={`img/icons/emojis/manos.png`}
-                                                    alt="Man"
-                                                />
-                                                <p class="description">¿Que<br /> necesitas?</p>
-                                            </button>
-                                        </div>
-                                    </CCol>
-                                    <CCol xs={12} sm={12} md={12} lg={12}>
-                                        <div class="button-box">
-                                            <button class="button2" onClick={() => { window.open(`https://api.whatsapp.com/send?phone=50244793488&text=Hola%20me%20gustar%C3%ADa%20saber%20en%20donde%20esta%20mi%20paquete,%20esta%20es%20la%20clave%20del%20pedido:%20${id}`) }}>
-                                                <p class="titulo">Seleccionar <br /> entrega</p>
-
-                                                <img
-                                                    src={`img/icons/emojis/calendario.gif`}
-                                                    alt="Man"
-                                                    className='sm'
-                                                />
-                                                <p class="description">Cambio<br /> fecha</p>
-                                            </button>
-                                        </div>
-                                    </CCol>
-                                </CRow>
-                            </CContainer>
-                        </CCol>
-                        <CCol xs="12" sm="8" md="6" lg="6" className='containerTracking'>
-                            <CRow className={``}>
-                                <CCol className={`d-flex flex-column text-right containerSearch`}>
-                                    <CInput type='text' value={info.guia}></CInput>
-                                    <small>Ingrese otra orden.</small>
-                                </CCol>
-                            </CRow>
-                            <TrackEvent className='m-auto'></TrackEvent>
-                        </CCol>
-                    </CRow>
-                    <CRow className="justify-content-md-center mb-3"
-                        style={{ display: (info.estado_pedido === 'cancelado' || info.estado_pedido === 'devolucion') ? 'flex' : 'none' }}
-                    >
-                        <CCol sm="12" lg="10">
-                            <CAlert className="tracking-info-alert" color="warning">
-                                <CIcon
-                                    name="cil-warning"
-                                    style={{ marginRight: '1rem' }} />
-                                Retornado al almacen
-                            </CAlert>
+                        <CCol xs="12" sm="12" md="12" lg="12" className={"container-whatsapp-informacion"}>
+                            <p className='text-whatsapp-informacion'>Si necesitas mas informacion sobre tu paquete</p>
+                            <CButton className={"btn-whatsapp-informacion"} color="success" onClick={() => window.open(`https://api.whatsapp.com/send?phone=50242860214&text=Hola%20me%20gustar%C3%ADa%20saber%20en%20donde%20esta%20mi%20paquete,%20esta%20es%20la%20clave%20del%20pedido:%20${info?.pedido?.guia}`, '_blank')}>
+                                <img src="img/whatsapp.png" alt="WhatsApp" /> <span>Clic aquí</span>
+                            </CButton>
                         </CCol>
                     </CRow>
                     <br />
@@ -416,35 +420,6 @@ function TrackingInformation(props) {
     )
 }
 
-const RowData = (props) => {
-    return (
-        <CRow className="p-2">
-            <CCol>
-                <CRow className="ml-4">
-                    <h6 className="key-info">{props.info_keys[props.left_data[0]]}: </h6> <h6 className="value-info">{props.data[props.left_data[0]]}</h6>
-                </CRow>
-            </CCol>
-            <CCol>
-                <CRow className="ml-4">
-                    <h6 className="key-info">{props.info_keys[props.right_data[0]]}: </h6> <h6 className="value-info">{props.data[props.right_data[0]]}</h6>
-                </CRow>
-            </CCol>
-        </CRow>
-    )
-}
-
-
-const FullRowData = (props) => {
-    return (
-        <CRow className="p-2">
-            <CCol>
-                <CRow className="ml-4">
-                    <h6 className="key-info">{props.info_keys[props.data_key]}: </h6> <h6 className="value-info" dangerouslySetInnerHTML={{ __html: props.data[props.data_key].replace(/\n/g, '<br />') }}></h6>
-                </CRow>
-            </CCol>
-        </CRow>
-    )
-}
 
 const MultipleSlidesExample = (props) => {
     const { data } = props;
