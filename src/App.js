@@ -47,6 +47,7 @@ class App extends Component {
               <Route exact path="/planes" name="Planes" render={props => <Planes {...props} />} />
               <Route exact path="/plan-cambio" name="Plan Cambio" render={props => <PlanCambio {...props} />} />
               <Route exact path="/tracking/:orden/telefono/:telefono" name="Tracking Page" render={props => <Tracking {...props} />} />
+              <Route exact path="/tracking/:guia" name="Tracking Page" render={props => <Tracking {...props} />} />
               <Route exact path="/faqs" name="Faqs" render={props => <Faqs {...props} />} />
               <Route exact path="/confirmacion-datos/:id" name="Confirmación de Datos" render={props => <ConfirmacionDatos {...props} /> } />
               <Redirect exact from='/nosotros' to='/' />

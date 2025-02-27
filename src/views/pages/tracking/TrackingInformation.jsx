@@ -37,7 +37,7 @@ import es from "date-fns/locale/es"; // Importa el locale en español
 registerLocale("es", es);
 
 function TrackingInformation() {
-    let { telefono, orden } = useParams();
+    let { telefono, orden, guia } = useParams();
     const [ordenId, setOrdenId] = useState(null);
     const [info, setInfo] = useState(null); //Este se usa para la informacion del pedido.
     const [data_cross_selling, setDataCrossSelling] = useState([]);
@@ -102,7 +102,21 @@ function TrackingInformation() {
             }).catch((error) => {
                 addToast("No se encontro la orden.", { appearance: 'warning', autoDismiss: true, autoDismissTime: 300 });
             });
-    }, [telefono, orden])
+    }, [telefono, orden]);
+
+    useEffect(() => {
+        const config = {};
+        axios.get(`https://ws.conectaguate.com/api/v1/pedido/guia/tracking/${guia}`, config,).then(
+            (result) => {
+                let res = result.data["Data"];
+                setParametrosBusqueda({ telefono: res?.pedido?.telefono_destino, ordenId: res?.pedido?.id });
+                setInfo(res);
+                setOrdenId(res.pedido.id);
+                addToast("Se encontro la orden.", { appearance: 'success', autoDismiss: true, autoDismissTime: 300 })
+            }).catch((error) => {
+                addToast("No se encontro la orden.", { appearance: 'warning', autoDismiss: true, autoDismissTime: 300 });
+            });
+    }, [guia]);
 
     const buscarNuevaGuia = () => {
         const { telefono, ordenId } = parametrosBusqueda;
