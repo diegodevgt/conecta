@@ -116,11 +116,15 @@ const FormularioDatos = () => {
         formData.append("guia", id);
 
         axios.post(
-            'http://127.0.0.1:8000/api/v1/confirmacion/direccion',
+            'https://ws.conectaguate.com/api/v1/confirmacion/direccion',
             formData
         ).then(async (response) => {
-            setConfiguracion(response.data.Data);
-            setFormularioLleno(!isNull(response?.data?.Registro));
+            if(response.data.Data == null){
+                setFormularioLleno(true);
+            }else{
+                setFormularioLleno(!isNull(response?.data?.Registro));
+                setConfiguracion(response.data.Data);
+            }
         }).catch((e) => {
             console.log(e);
         });
@@ -164,7 +168,7 @@ const FormularioDatos = () => {
         }
         const formData = direccionSeleccionada;
         axios.put(
-            'http://127.0.0.1:8000/api/v1/confirmacion/direccion',
+            'https://ws.conectaguate.com/api/v1/confirmacion/direccion',
             formData
         ).then(async (response) => {
             addToast('Se confirmo la informacion correctamente.', {

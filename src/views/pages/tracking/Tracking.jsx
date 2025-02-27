@@ -4,12 +4,11 @@ import PublicHeader from '../global/PublicHeader'
 import HeaderTracking from './HeaderTracking'
 import TrackingInformation from './TrackingInformation'
 
-
 const Tracking = () => {
   return (
       <>
         <PublicHeader />
-        <HeaderTracking />
+        <HeaderTracking></HeaderTracking>
         <TrackingInformation />
         <PublicFooter />
       </>

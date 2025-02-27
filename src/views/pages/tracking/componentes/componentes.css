@@ -35,7 +35,21 @@
     fill: #fff !important;
 }
 
+.colIconEvent .finalizado svg,
+.colIconEvent .finalizado .cls-1 {
+    background-color: #577cbd !important;
+    fill: #fff !important;
+}
+
+.colIconEvent .finalizado svg:hover .cls-1 {
+    fill: #fff !important;
+}
+
 .colIconEvent .pendiente svg:hover .cls-1 {
+    fill: #fff !important;
+}
+
+.colIconEvent .cancelado svg {
     fill: #fff !important;
 }
 
@@ -55,20 +69,6 @@
     animation: animateOutlineCancelado 2s ease infinite;
     margin: auto;
 }
-
-.colIconEvent .cancelado svg {
-    border: none;
-    width: 65px !important;
-    height: 65px !important;
-    border-radius: 0px !important;
-    padding: 10px;
-}
-
-.colIconEvent .cancelado svg:hover {
-    transform: none !important;
-    background-color: transparent !important;
-}
-
 
 .rowEvent.completado {
     border-color: #577cbd;
