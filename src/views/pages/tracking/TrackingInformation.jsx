@@ -286,7 +286,7 @@ function TrackingInformation() {
                                                 <CRow className="confirmarDireccion">
                                                     {isNil(info?.direccionConfirmada) &&
                                                         <CCol xs={12} sm={12} md={12} lg={12} className={"text-center d-flex flex-column"}>
-                                                            <CButton className={"btn-confirmar-direccion"} onClick={() => { window.open(`http://localhost:3000/#/Confirmacion-datos/${info.pedido.guia}`) }}>Confirmar dirección</CButton>
+                                                            <CButton className={"btn-confirmar-direccion"} onClick={() => { window.open(`/confirmacion-datos/${info.pedido.guia}`) }}>Confirmar dirección</CButton>
                                                         </CCol>
                                                     }
                                                     {!isNil(info?.direccionConfirmada) &&
