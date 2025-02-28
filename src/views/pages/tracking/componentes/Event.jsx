@@ -62,7 +62,7 @@ const Event = (props) => {
             return true;
         });
 
-        const requiredStates = ['Recibido', 'Almacén', 'Completada'];
+        const requiredStates = ['Recibido', 'Tránsito', 'Almacén', 'Completada'];
         if (estadoAcutal !== 14 && estadoAcutal !== 12) {
             requiredStates.forEach(state => {
                 if (!filteredData.some(d => d.estado === state)) {

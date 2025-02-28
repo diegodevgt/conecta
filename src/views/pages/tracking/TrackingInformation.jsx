@@ -89,6 +89,9 @@ function TrackingInformation() {
 
 
     useEffect(() => {
+        if(isNil(orden)){
+            return;
+        }
         const config = {};
         setParametrosBusqueda({ telefono: telefono, ordenId: orden });
         const encodedOrden = btoa(orden);
@@ -105,6 +108,9 @@ function TrackingInformation() {
     }, [telefono, orden]);
 
     useEffect(() => {
+        if(isNil(guia)){
+            return;
+        }
         const config = {};
         axios.get(`https://ws.conectaguate.com/api/v1/pedido/guia/tracking/${guia}`, config,).then(
             (result) => {
@@ -242,7 +248,7 @@ function TrackingInformation() {
 
                                                 <CRow>
                                                     <CCol>
-                                                        <p className='fecha-tracking'>Fecha pedido <span>{convertirFecha(info?.pedido?.created_at)}</span></p>
+                                                        <p className='fecha-tracking'>Fecha de solicitud del pedido: <span>{convertirFecha(info?.pedido?.created_at)}</span></p>
                                                     </CCol>
                                                 </CRow>
                                                 <CRow className="direccionEntrega">
@@ -318,7 +324,7 @@ function TrackingInformation() {
                                                         <CCol xs={12} sm={12} md={12} lg={12} className={"text-center d-flex flex-column"}>
                                                             <CButton className={"btn-reprogramar-entrega"} onClick={toggle}>¿Reprogramar entrega?</CButton>
                                                             <p style={{ maxWidth: '75%', margin: 'auto', marginTop: '10px', fontSize: '.9em' }}>
-                                                                Si no puedes recibir tu paquete el día o dirección programado, cambia tus datos en esta opción.
+                                                                Si deseas reprogramar la entrega de tu paquete, haz clic en el botón.
                                                             </p>
                                                         </CCol>
                                                     }
