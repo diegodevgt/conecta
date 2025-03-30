@@ -34,6 +34,10 @@ const Event = (props) => {
                 clase = 'finalizado';
             }
 
+            if(estadoAcutal === 13 && estado.statusId !== 13){
+                clase = 'completado';
+            }
+
             const claseCancelada = (clase === 'actual' && (estadoAcutal === 14 || estadoAcutal === 12)) ? 'cancelado' : null;
             return {
                 clase: isNil(claseCancelada) ? clase : claseCancelada, 
@@ -47,7 +51,7 @@ const Event = (props) => {
             if (data.estado === "Liquidado" && data.clase === 'completado') {
                 return false;
             }
-            if (data.estado === 'Completada' && data.clase === 'completado' && estadoAcutal !== 7) { //Estado Liquidado
+            if (data.estado === 'Completada' && data.clase === 'completado' && estadoAcutal !== 13) { //Estado Liquidado
                 return false;
             }
             if (data.estado === 'Devolución' && data.clase === 'completado') {
@@ -67,7 +71,7 @@ const Event = (props) => {
             requiredStates.forEach(state => {
                 if (!filteredData.some(d => d.estado === state)) {
                     filteredData.push({
-                        clase: state === 'Recibido' ? 'actual' : 'pendiente',
+                        clase: (state === 'Completada' && estadoAcutal === 13) ? 'completado' : (state === 'Recibido' ? 'actual' : 'pendiente'),
                         img: iconosImg[state] ?? iconosImg['Default'],
                         estado: state,
                         detalles: state === 'Recibido' ? [new Date().toLocaleString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })] : []
@@ -82,7 +86,13 @@ const Event = (props) => {
             const [recibido] = filteredData.splice(recibidoIndex, 1);
             filteredData.unshift(recibido);
         }
-        
+
+        //Estado Liquidado is always the last element
+        const liquidadoIndex = filteredData.findIndex(d => d.estado === 'Liquidado');
+        if(liquidadoIndex > 0){
+            const [liquidado] = filteredData.splice(liquidadoIndex, 1);
+            filteredData.push(liquidado);
+        }
 
         setData(filteredData);
 
