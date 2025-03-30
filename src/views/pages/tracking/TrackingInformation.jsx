@@ -304,7 +304,7 @@ function TrackingInformation() {
                                                     </CCol>
                                                 </CRow>
                                                 <CRow className="confirmarDireccion">
-                                                    {isNil(info?.direccionConfirmada) &&
+                                                    {(isNil(info?.direccionConfirmada) && info?.pedido?.status !== 13 && info?.pedido?.status !== 7 )&&
                                                         <CCol xs={12} sm={12} md={12} lg={12} className={"text-center d-flex flex-column"}>
                                                             <CButton className={"btn-confirmar-direccion"} onClick={() => { window.open(`#/confirmacion-datos/${info.pedido.guia}`) }}>Confirmar dirección</CButton>
                                                         </CCol>
@@ -328,7 +328,7 @@ function TrackingInformation() {
                                                             </p>
                                                         </CCol>
                                                     }
-                                                    {(!isNil(info?.fechaConfirmacion) && info?.pedido?.status !== 13 && info?.pedido?.status !== 7) &&
+                                                    {!isNil(info?.fechaConfirmacion) &&
 
                                                         <CCol xs={12} sm={12} md={12} lg={12} className={"text-center d-flex flex-column"}>
                                                             <p className='fecha-tracking'>
