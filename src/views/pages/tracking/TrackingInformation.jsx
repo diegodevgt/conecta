@@ -319,7 +319,7 @@ function TrackingInformation() {
 
                                                 </CRow>
                                                 <CRow className="reprogramar-entrega">
-                                                    {isNil(info?.fechaConfirmacion) &&
+                                                    {(isNil(info?.fechaConfirmacion) && info?.pedido?.status !== 13 && info?.pedido?.status!== 7 )&&
 
                                                         <CCol xs={12} sm={12} md={12} lg={12} className={"text-center d-flex flex-column"}>
                                                             <CButton className={"btn-reprogramar-entrega"} onClick={toggle}>¿Reprogramar entrega?</CButton>
