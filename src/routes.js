@@ -21,6 +21,7 @@ const routes = [
   { path: '/creacion-pedido', name: 'Creacion de Pedido', component: CreacionPedido },
   { path: '/mis-envios', name: 'Mis Envios', component: MisEnvios },
   { path: '/saldo-prepago', name: 'Saldo Prepago', component: SaldoPrepago },
+  { path: '/cuenta/saldo-prepago', name: 'Saldo Prepago', component: SaldoPrepago },
   { path: '/mis-cupones', name: 'Mis Cupones', component: Cupones },
   { path: '/planes-disponibles', name: 'Planes Disponibles', component: PlanesDisponibles },
   { path: '/coberturas', name: 'Coberturas', component: Coberturas },
