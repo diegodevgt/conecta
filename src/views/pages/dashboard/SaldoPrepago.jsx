@@ -193,8 +193,13 @@ function CrossSelling(props) {
                     fecha: newDate
                 });
             });
-            const saldoActual = result.reduce((acumulado, saldo) => { return acumulado + parseFloat(saldo.monto) }, 0);
-            setSaldoActual(saldoActual);
+
+            const saldoActual = result.reduce((acumulado, saldo) => {
+                const monto = parseFloat(saldo?.monto);
+                return acumulado + (isNaN(monto) ? 0 : monto);
+              }, 0);
+            setSaldoActual(saldoActual);              
+            
             setColumnDefinitions({
                 ...column_definitions,
                 rowData: registros,
