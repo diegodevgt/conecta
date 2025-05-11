@@ -15,6 +15,7 @@ import { useToasts } from 'react-toast-notifications';
 import { reactLocalStorage } from 'reactjs-localstorage';
 import { v4 as uuidv4 } from 'uuid';
 import PedidoUploadModal from './PedidoUploadModal';
+import { isNil } from 'lodash';
 
 const CreacionPedido = () => {
     const history = useHistory();
@@ -458,6 +459,20 @@ const CreacionPedido = () => {
             let data = response.data;
             return data;
         }).catch(function (error) {
+            if (error.response && error.response.data && error.response.data.Message) {
+                const messages = error.response.data.Message;
+                for (const [key, value] of Object.entries(messages)) {
+                    if (Array.isArray(value)) {
+                        value.forEach((msg) => {
+                            addToast(`${key}: ${msg}`, {
+                                appearance: 'error',
+                                autoDismiss: true,
+                                autoDismissTimeout: 4000
+                            });
+                        });
+                    }
+                }
+            }
             if (error.response) {
                 return error;
             }
@@ -536,6 +551,20 @@ const CreacionPedido = () => {
             let data = response.data;
             return data;
         }).catch(function (error) {
+            if (error.response && error.response.data && error.response.data.Message) {
+                const messages = error.response.data.Message;
+                for (const [key, value] of Object.entries(messages)) {
+                    if (Array.isArray(value)) {
+                        value.forEach((msg) => {
+                            addToast(`${key}: ${msg}`, {
+                                appearance: 'error',
+                                autoDismiss: true,
+                                autoDismissTimeout: 4000
+                            });
+                        });
+                    }
+                }
+            }
             if (error.response) {
                 return error;
             }
@@ -824,6 +853,24 @@ const CreacionPedido = () => {
                         allow = false;
                     }
                 }
+            }
+
+            if (data.direccion_remitente.length <= 10) {
+                addToast(`El campo Dirección (Remitente) debe tener más de 10 caracteres`, {
+                    appearance: 'error',
+                    autoDismiss: true,
+                    autoDismissTimeout: 4000
+                });
+                allow = false;
+            }
+
+            if (data.direccion_destinatario.length <= 10) {
+                addToast(`El campo Dirección (Destinatario) debe tener más de 10 caracteres`, {
+                    appearance: 'error',
+                    autoDismiss: true,
+                    autoDismissTimeout: 4000
+                });
+                allow = false;
             }
         }
 
@@ -1536,6 +1583,15 @@ const Step2 = (props) => {
             });
             return false;
         }
+        
+        if(props.cod > 0 && props.cod < 30){
+            addToast(`El monto del COD no puede ser menor a Q30`, {
+                appearance: 'error',
+                autoDismiss: true,
+                autoDismissTimeout: 4000
+            });
+            return false;
+        }
 
         props.changeStep(2);
     }
@@ -1582,6 +1638,7 @@ const Step2 = (props) => {
             //     autoDismiss: true,
             //     autoDismissTimeout: 4000
             // });
+            return;
         } else {
             props.setCotizacionValida(true);
         }
